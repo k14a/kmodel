@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="../KintoneNetLibrary/src/KintoneNetLibrary.CodeGen/KintoneNetLibrary.CodeGen.csproj" />
+  <Project Path="../KintoneNetLibrary/src/KintoneNetLibrary/KintoneNetLibrary.csproj" />
+  <Project Path="kmodel/kmodel.csproj" />
+</Solution>
