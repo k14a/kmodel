@@ -53,6 +53,7 @@ TestResults/
 # アップロード禁止な個人設定
 TestConfig.json
 appsettings.*.json
+kmodel.config.json
 
 # その他環境依存
 *.vs/
