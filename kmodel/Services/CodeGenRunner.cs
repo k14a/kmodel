@@ -10,13 +10,11 @@ public class CodeGenRunner(
     ISchemaConverter schemaConverter,
     ISchemaProvider schemaProvider,
     ICodeEmitter codeEmitter,
-    // ConfigLoader configLoader,
     ILogger<CodeGenRunner> logger){
     private readonly IFileWriter _fileWriter = fileWriter;
     private readonly ISchemaConverter _schemaConverter = schemaConverter;
     private readonly ISchemaProvider _schemaProvider = schemaProvider;
     private readonly ICodeEmitter _codeEmitter = codeEmitter;
-    // private readonly ConfigLoader _configLoader = configLoader;
     private readonly ILogger<CodeGenRunner> _logger = logger;
 
     public async Task RunAsync(GenerateOptions options, string subDomain) {
