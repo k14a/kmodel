@@ -1,0 +1,67 @@
+{
+  // JSON Schema による補完とバリデーションを有効化します。
+  // リポジトリのルートに kmodel.config.schema.json を配置してください。
+  "$schema": "./kmodel.config.schema.json",
+
+  // kmodel で生成したいアプリごとの設定を配列で記述します。
+  // 必須: Kintoneサブドメイン
+  "subDomain": "YOUR_SUB_DOMAIN",
+  "generates": [
+    {
+      // 必須: Kintone アプリID
+      "appId": 123,
+
+      // 必須: このアプリにアクセスするための API トークン
+      "apiToken": "YOUR_API_TOKEN_HERE",
+
+      // 任意: 生成される C# クラスの namespace
+      "namespace": "KintoneModels.App123",
+
+      // 任意: クラス名を固定したい場合に指定
+      // null の場合はアプリ名などから自動生成されます
+      "className": null,
+
+      // 任意: C# record を使用するかどうか
+      "useRecord": false,
+
+      // 任意: KintoneNetLibrary 固有の属性を付与しない純粋な POCO モデルを生成するか
+      "pureMode": false,
+
+      // 任意: ドロップダウンなどの選択肢を enum として生成するか
+      "generateEnums": false,
+
+      // 任意: 生成ファイルの出力先ディレクトリ
+      "outputDirectory": "./Models/App123",
+
+      // 任意： 生成ファイルが存在する場合に上書きするかどうか
+      "overwriteExistingFiles": false
+    }
+    // 複数アプリを扱いたい場合は、以下のように追加できます:
+    // {
+    //   "appId": 456,
+    //   "apiToken": "ANOTHER_TOKEN",
+    //   "namespace": "KintoneModels.App456",
+    //   "className": "Customer",
+    //   "useRecord": true,
+    //   "pureMode": false,
+    //   "generateEnums": false,
+    //   "outputDirectory": "./Models/App456",
+    //   "overwriteExistingFiles": false
+    // }
+  ],
+  "raws": [
+    {
+      // 必須: Kintone アプリID
+      "appId": 222,
+
+      // 必須: このアプリにアクセスするための API トークン
+      "apiToken": "YOUR_API_TOKEN_HERE",
+
+      // 任意: 生成ファイルの出力先ディレクトリ
+      "outputDirectory": ".",
+
+      // 任意: 生成する場合に上書きするかどうか
+      "overwriteExistingFiles": false
+    }
+  ]
+}

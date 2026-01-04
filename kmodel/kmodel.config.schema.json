@@ -1,0 +1,92 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "kmodel configuration schema",
+  "type": "object",
+  "properties": {
+    "subDomain": {
+      "type": "string",
+      "description": "Kintone subDomain (e.g., 'example' for https://example.cybozu.com)."
+    },
+    "generates": {
+      "type": "array",
+      "description": "List of model generation settings for each Kintone app.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "appId": {
+            "type": "integer",
+            "description": "Kintone app ID."
+          },
+          "apiToken": {
+            "type": "string",
+            "description": "API token for accessing the Kintone app."
+          },
+          "namespace": {
+            "type": "string",
+            "description": "Namespace for generated C# classes.",
+            "default": "KintoneModels"
+          },
+          "className": {
+            "type": ["string", "null"],
+            "description": "Optional class name override. If null, the default naming (App{appId}) is used."
+          },
+          "useRecord": {
+            "type": "boolean",
+            "description": "Generate C# record types instead of classes.",
+            "default": false
+          },
+          "pureMode": {
+            "type": "boolean",
+            "description": "Generate pure POCO models without Kintone-specific attributes.",
+            "default": false
+          },
+          "generateEnums": {
+            "type": "boolean",
+            "description": "Generate enums for dropdown/multi-select fields.",
+            "default": false
+          },
+          "outputDirectory": {
+            "type": "string",
+            "description": "Output directory for generated files (relative paths are resolved from the kmodel execution directory).",
+            "default": "."
+          },
+          "overwriteExistingFiles": {
+            "type": "boolean",
+            "description": "Whether to overwrite existing files in the output directory.",
+            "default": false
+          }
+        },
+        "required": ["appId", "apiToken"]
+      }
+    },
+    "raws": {
+      "type": "array",
+      "description": "List of raw metadata export settings for each Kintone app.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "appId": {
+            "type": "integer",
+            "description": "Kintone app ID."
+          },
+          "apiToken": {
+            "type": "string",
+            "description": "API token for accessing the Kintone app."
+          },
+          "outputDirectory": {
+            "type": "string",
+            "description": "Output directory for raw metadata files.",
+            "default": "."
+          },
+          "overwriteExistingFiles": {
+            "type": "boolean",
+            "description": "Whether to overwrite existing raw files.",
+            "default": false
+          }
+        },
+        "required": ["appId", "apiToken"]
+      }
+    }
+  },
+  "required": ["subDomain", "generate"]
+}

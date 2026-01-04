@@ -1,43 +1,35 @@
-using KintoneNetLibrary.CodeGen.Domain.Schemas;
-using KintoneNetLibrary.Domain.Entities;
+using Microsoft.Extensions.Logging;
+using KintoneNetLibrary.CodeGen.Domain.Options;
+using kmodel.Options;
 
 namespace kmodel.Services;
 
-public class SchemaConverter : ISchemaConverter {
-    public KintoneAppSchema Convert(KintoneAppMetadata metadata) {
-        var schema = new KintoneAppSchema {
-            AppId = metadata.AppId,
-            Fields = [],
-            Subtables = []
+public class SchemaConverter(ILogger<SchemaConverter> logger) : ISchemaConverter {
+    private readonly ILogger<SchemaConverter> _logger = logger;
+
+    public CodeEmitterOptions ConvertToEmitterOptions(GenerateOptions options) {
+        this._logger.LogDebug("Converting GenerateOptions to CodeEmitterOptions for AppId: {appId}", options.AppId);
+
+        var emitterOptions = new CodeEmitterOptions {
+            Namespace = options.Namespace,
+            MainClassName = options.ClassName ?? "KintoneModel",
+            UseRecord = options.UseRecord,
+            UseKintoneNetLibrary = !options.PureMode,
+            GenerateEnums = options.GenerateEnums,
+            OutputDirectory = options.OutputDirectory,
+            OverwriteExistingFiles = options.OverwriteExistingFiles
         };
 
-        foreach (var f in metadata.Fields) {
-            if (f.Type == KintoneFieldType.SubTable) {
-                // サブテーブルとして登録
-                schema.Subtables.Add(new KintoneSubtableSchema {
-                    FieldCode = f.Code,
-                    Label = f.Label,
-                    Fields = f.SubFields?.Select(sf => new KintoneFieldSchema {
-                        FieldCode = sf.Code,
-                        Label = sf.Label,
-                        FieldType = sf.Type,
-                        Required = sf.Required,
-                        Options = sf.Options==null ?[] : [.. sf.Options]
-                    }).ToList() ?? []
-                });
+        emitterOptions.NormalizePaths();
+        emitterOptions.EnsureDefaults(options.AppId);
 
-            } else {
-                // 通常フィールドとして登録
-                schema.Fields.Add(new KintoneFieldSchema {
-                    FieldCode = f.Code,
-                    Label = f.Label,
-                    FieldType = f.Type,
-                    Required = f.Required,
-                    Options = f.Options == null ? [] : [.. f.Options]
-                });
-            }
-        }
+        this._logger.LogDebug(
+            "Conversion completed: Namespace={Namespace}, Class={ClassName}, Output={OutputDirectory}",
+            emitterOptions.Namespace,
+            emitterOptions.MainClassName,
+            emitterOptions.OutputDirectory
+        );
 
-        return schema;
+        return emitterOptions;
     }
 }
