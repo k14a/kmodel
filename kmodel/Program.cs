@@ -8,6 +8,7 @@ using KintoneNetLibrary.CodeGen.Application.Services;
 using KintoneNetLibrary.Application.Interfaces;
 using KintoneNetLibrary.Infrastructure.Api;
 using KintoneNetLibrary.CodeGen.Application.Emitters;
+using kmodel.Interfaces;
 
 internal class Program {
     static async Task Main(string[] args) {
@@ -44,6 +45,7 @@ internal class Program {
                 services.AddSingleton<IFileWriter, FileWriter>();
                 services.AddSingleton<ISchemaConverter, SchemaConverter>();
                 services.AddSingleton<ConfigLoader>();
+                services.AddSingleton<IMetadataDiffer, MetadataDiffer>();
 
                 // KintoneNetLibrary.CodeGen 関連サービス
                 services.AddTransient<ISchemaProvider, SchemaProvider>();

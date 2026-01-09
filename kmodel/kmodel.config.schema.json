@@ -1,92 +1,173 @@
 {
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "kmodel configuration schema",
-  "type": "object",
-  "properties": {
-    "subDomain": {
-      "type": "string",
-      "description": "Kintone subDomain (e.g., 'example' for https://example.cybozu.com)."
-    },
-    "generates": {
-      "type": "array",
-      "description": "List of model generation settings for each Kintone app.",
-      "items": {
-        "type": "object",
-        "properties": {
-          "appId": {
-            "type": "integer",
-            "description": "Kintone app ID."
-          },
-          "apiToken": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "title": "kmodel configuration schema",
+    "type": "object",
+    "properties": {
+        "subDomain": {
             "type": "string",
-            "description": "API token for accessing the Kintone app."
-          },
-          "namespace": {
-            "type": "string",
-            "description": "Namespace for generated C# classes.",
-            "default": "KintoneModels"
-          },
-          "className": {
-            "type": ["string", "null"],
-            "description": "Optional class name override. If null, the default naming (App{appId}) is used."
-          },
-          "useRecord": {
-            "type": "boolean",
-            "description": "Generate C# record types instead of classes.",
-            "default": false
-          },
-          "pureMode": {
-            "type": "boolean",
-            "description": "Generate pure POCO models without Kintone-specific attributes.",
-            "default": false
-          },
-          "generateEnums": {
-            "type": "boolean",
-            "description": "Generate enums for dropdown/multi-select fields.",
-            "default": false
-          },
-          "outputDirectory": {
-            "type": "string",
-            "description": "Output directory for generated files (relative paths are resolved from the kmodel execution directory).",
-            "default": "."
-          },
-          "overwriteExistingFiles": {
-            "type": "boolean",
-            "description": "Whether to overwrite existing files in the output directory.",
-            "default": false
-          }
+            "description": "Kintone subDomain (e.g., 'example' for https://example.cybozu.com)."
         },
-        "required": ["appId", "apiToken"]
-      }
-    },
-    "raws": {
-      "type": "array",
-      "description": "List of raw metadata export settings for each Kintone app.",
-      "items": {
-        "type": "object",
-        "properties": {
-          "appId": {
-            "type": "integer",
-            "description": "Kintone app ID."
-          },
-          "apiToken": {
-            "type": "string",
-            "description": "API token for accessing the Kintone app."
-          },
-          "outputDirectory": {
-            "type": "string",
-            "description": "Output directory for raw metadata files.",
-            "default": "."
-          },
-          "overwriteExistingFiles": {
-            "type": "boolean",
-            "description": "Whether to overwrite existing raw files.",
-            "default": false
-          }
+        "generates": {
+            "type": "array",
+            "description": "List of model generation settings for each Kintone app.",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "appId": {
+                        "type": "integer",
+                        "description": "Kintone app ID."
+                    },
+                    "apiToken": {
+                        "type": "string",
+                        "description": "API token for accessing the Kintone app."
+                    },
+                    "namespace": {
+                        "type": "string",
+                        "description": "Namespace for generated C# classes.",
+                        "default": "KintoneModels"
+                    },
+                    "className": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "description": "Optional class name override. If null, the default naming (App{appId}) is used."
+                    },
+                    "useRecord": {
+                        "type": "boolean",
+                        "description": "Generate C# record types instead of classes.",
+                        "default": false
+                    },
+                    "pureMode": {
+                        "type": "boolean",
+                        "description": "Generate pure POCO models without Kintone-specific attributes.",
+                        "default": false
+                    },
+                    "generateEnums": {
+                        "type": "boolean",
+                        "description": "Generate enums for dropdown/multi-select fields.",
+                        "default": false
+                    },
+                    "outputDirectory": {
+                        "type": "string",
+                        "description": "Output directory for generated files (relative paths are resolved from the kmodel execution directory).",
+                        "default": "."
+                    },
+                    "overwriteExistingFiles": {
+                        "type": "boolean",
+                        "description": "Whether to overwrite existing files in the output directory.",
+                        "default": false
+                    }
+                },
+                "required": [
+                    "appId",
+                    "apiToken"
+                ]
+            }
         },
-        "required": ["appId", "apiToken"]
-      }
-    }
-  },
-  "required": ["subDomain", "generate"]
+        "raws": {
+            "type": "array",
+            "description": "List of raw metadata export settings for each Kintone app.",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "appId": {
+                        "type": "integer",
+                        "description": "Kintone app ID."
+                    },
+                    "apiToken": {
+                        "type": "string",
+                        "description": "API token for accessing the Kintone app."
+                    },
+                    "outputDirectory": {
+                        "type": "string",
+                        "description": "Output directory for raw metadata files.",
+                        "default": "."
+                    },
+                    "overwriteExistingFiles": {
+                        "type": "boolean",
+                        "description": "Whether to overwrite existing raw files.",
+                        "default": false
+                    },
+                    "escapeUnicode": {
+                        "type": "boolean",
+                        "description": "Whether to escape Unicode characters in the output files.",
+                        "default": false
+                    }
+                },
+                "required": [
+                    "appId",
+                    "apiToken"
+                ]
+            }
+        },
+        "diffs": {
+            "type": "array",
+            "description": "List of diff generation settings for each Kintone app.",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "appId": {
+                        "type": "integer",
+                        "description": "Kintone app ID."
+                    },
+                    "apiToken": {
+                        "type": "string",
+                        "description": "API token for accessing the Kintone app."
+                    },
+                    "outputDirectory": {
+                        "type": "string",
+                        "description": "Output directory for diff files.",
+                        "default": "."
+                    },
+                    "overwriteExistingFiles": {
+                        "type": "boolean",
+                        "description": "Whether to overwrite existing diff files.",
+                        "default": false
+                    },
+                    "compareWithFile": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "description": "Optional specific raw metadata file to compare with.",
+                        "default": null
+                    },
+                    "outputFormat": {
+                        "type": "string",
+                        "description": "Output format for diffs (Text, Json, Markdown).",
+                        "enum": [
+                            "Text",
+                            "Json",
+                            "Markdown"
+                        ],
+                        "default": "Text"
+                    },
+                    "diffOutputFile": {
+                        "type": "string",
+                        "description": "Filename for the diff output. {appId} will be replaced automatically.",
+                        "default": "App{appId}.diff.txt"
+                    },
+                    "failIfNoBaseFile": {
+                        "type": "boolean",
+                        "description": "Whether to fail if no base raw file is found for comparison.",
+                        "default": false
+                    },
+                    "escapeUnicode": {
+                        "type": "boolean",
+                        "description": "Whether to escape Unicode characters in the output files.",
+                        "default": false
+                    }
+                },
+                "required": [
+                    "appId",
+                    "apiToken"
+                ]
+            }
+        }
+    },
+    "required": [
+        "subDomain",
+        "generates"
+    ]
 }

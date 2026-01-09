@@ -9,7 +9,7 @@
   "generates": [
     {
       // 必須: Kintone アプリID
-      "appId": 123,
+      "appId": 111,
 
       // 必須: このアプリにアクセスするための API トークン
       "apiToken": "YOUR_API_TOKEN_HERE",
@@ -60,8 +60,41 @@
       // 任意: 生成ファイルの出力先ディレクトリ
       "outputDirectory": ".",
 
+      // 任意: 日本語のエスケープを行うかどうか
+      "escapeUnicode": false,
+
       // 任意: 生成する場合に上書きするかどうか
       "overwriteExistingFiles": false
+    }
+  ],
+  "diffs": [
+    {
+      // 必須: Kintone アプリID
+      "appId": 333,
+
+      // 必須: このアプリにアクセスするための API トークン
+      "apiToken": "YOUR_API_TOKEN_HERE",
+
+      // 任意: 差分ファイルの出力先ディレクトリ
+      "outputDirectory": ".",
+
+      // 任意: 生成する場合に上書きするかどうか
+      "overwriteExistingFiles": false,
+
+      // 任意: 比較対象ファイル名
+      "compareWithFile": null,
+
+      // 任意: 差分出力フォーマット(Text/Json/Markdown)
+      "outputFormat": "Text",
+
+      // 任意: 差分出力ファイル名
+      "diffOutputFile": "App9432_Diff.txt",
+
+      // 任意: 比較対象のファイルが存在しない場合にエラーにするかどうか
+      "failIfNoBaseFile": false,
+
+      // 任意: 日本語のエスケープを行うかどうか
+      "escapeUnicode": true
     }
   ]
 }

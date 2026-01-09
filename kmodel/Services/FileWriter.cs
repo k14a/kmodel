@@ -1,12 +1,21 @@
 using System.Text;
+using System.Text.Json;
 using KintoneNetLibrary.CodeGen.Domain.Models;
 using KintoneNetLibrary.CodeGen.Domain.Options;
 using KintoneNetLibrary.Domain.Entities;
+using kmodel.Enums;
+using kmodel.Extensions;
+using kmodel.Interfaces;
+using kmodel.Models;
 using kmodel.Options;
 using Microsoft.Extensions.Logging;
 
 namespace kmodel.Services;
 
+/// <summary>
+/// ファイル書き込みクラス
+/// </summary>
+/// <param name="logger"></param>
 public class FileWriter(ILogger<FileWriter> logger) : IFileWriter {
     private readonly ILogger<FileWriter> _logger = logger;
 
@@ -56,9 +65,40 @@ public class FileWriter(ILogger<FileWriter> logger) : IFileWriter {
         throw new NotImplementedException();
     }
 
-    // -----------------------------
-    // 共通処理（パス生成・上書きチェック・書き込み）
-    // -----------------------------
+    /// <summary>
+    /// 差分結果を書き込む
+    /// </summary>
+    /// <param name="diffs"></param>
+    /// <param name="options"></param>
+    /// <exception cref="NotImplementedException"></exception>
+    public void WriteDiffResults(List<DiffResult> diffs, DiffOptions options) {
+        var fileName = options.DiffOutputFile ?? $"App{options.AppId}.diff.txt";
+        fileName = fileName.Replace("{appId}", options.AppId.ToString());
+
+        var path = Path.Combine(options.OutputDirectory, fileName);
+
+        if (diffs.Count == 0) {
+            File.WriteAllText(path, "No differences found.");
+            return;
+        }
+
+        var context = options.OutputFormat switch {
+            DiffOutputFormats.Json => JsonSerializer.Serialize(diffs, new JsonSerializerOptions { WriteIndented = true }),
+            DiffOutputFormats.Markdown => string.Join(Environment.NewLine + Environment.NewLine, diffs.Select(d => d.ToMarkdown())),
+            _ => string.Join(Environment.NewLine, diffs.Select(d => d.ToText())),
+        };
+
+        File.WriteAllText(path, context);
+    }
+
+    /// <summary>
+    /// 共通処理（パス生成・上書きチェック・書き込み）
+    /// </summary>
+    /// <param name="fileName"></param>
+    /// <param name="code"></param>
+    /// <param name="options"></param>
+    /// <param name="appId"></param>
+    /// <param name="revision"></param>
     private void WriteFile(string fileName, string code, CodeEmitterOptions options, int appId, int revision) {
         // 1. ファイル名の安全性チェック
         if (!IsValidFileName(fileName)) {
@@ -90,16 +130,20 @@ public class FileWriter(ILogger<FileWriter> logger) : IFileWriter {
         this._logger.LogInformation("  - {File}", path.FullName);
     }
 
-    // -----------------------------
-    // パス生成（絶対パス前提）
-    // -----------------------------
+    /// <summary>
+    /// パス生成（絶対パス前提）
+    /// </summary>
+    /// <param name="fileName"></param>
+    /// <param name="options"></param>
+    /// <returns></returns>
     private static FileInfo BuildPath(string fileName, CodeEmitterOptions options) {
         return new FileInfo(Path.Combine(options.OutputDirectory, fileName));
     }
 
-    // -----------------------------
-    // 出力ディレクトリの存在保証
-    // -----------------------------
+    /// <summary>
+    /// 出力ディレクトリの存在保証
+    /// </summary>
+    /// <param name="outputDirectory"></param>
     private void EnsureOutputDirectory(string outputDirectory) {
         if (!Directory.Exists(outputDirectory)) {
             this._logger.LogDebug("Output directory does not exist. Creating: {Dir}", outputDirectory);
@@ -107,16 +151,21 @@ public class FileWriter(ILogger<FileWriter> logger) : IFileWriter {
         }
     }
 
-    // -----------------------------
-    // 上書きチェック
-    // -----------------------------
+    /// <summary>
+    /// 上書きチェック
+    /// </summary>
+    /// <param name="path"></param>
+    /// <param name="options"></param>
+    /// <returns></returns>
     private static bool CanWrite(FileInfo path, CodeEmitterOptions options) {
         return !path.Exists || options.OverwriteExistingFiles;
     }
 
-    // -----------------------------
-    // ファイル名の安全性チェック
-    // -----------------------------
+    /// <summary>
+    /// ファイル名の安全性チェック
+    /// </summary>
+    /// <param name="fileName"></param>
+    /// <returns></returns>
     private static bool IsValidFileName(string fileName) {
         return fileName.IndexOfAny(Path.GetInvalidFileNameChars()) < 0;
     }

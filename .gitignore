@@ -66,3 +66,6 @@ kmodel.config.json
 .devcontainer/
 Dockerfile
 docker-compose.*
+
+# Raw/Diffで使用するJSONファイル
+App*.metadata.json

@@ -3,6 +3,7 @@ using KintoneNetLibrary.CodeGen.Application.Interfaces;
 using KintoneNetLibrary.CodeGen.Domain.Models;
 using KintoneNetLibrary.CodeGen.Domain.Options;
 using KintoneNetLibrary.CodeGen.Domain.Schemas;
+using kmodel.Interfaces;
 using kmodel.Options;
 using kmodel.Services;
 
@@ -72,7 +73,7 @@ public class GenerateCommand(
     // private void WriteFiles(GeneratedModelResult result, CodeEmitterOptions options) {
     //     // メインモデル
     //     this._fileWriter.WriteMainModel(result.MainModelCode, options, options.AppId, result.Revision);
-    
+
     //     // サブテーブル
     //     foreach (var sub in result.SubtableModels){
     //         this._fileWriter.WriteSubtable(sub, options, options.AppId, result.Revision);
