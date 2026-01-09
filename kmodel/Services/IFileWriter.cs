@@ -7,7 +7,7 @@ namespace kmodel.Services;
 
 public interface IFileWriter {
     void WriteMainModel(string code, CodeEmitterOptions options, int appId, int revision);
-    void WriteSubtable(GeneratedSubtableModel model, CodeEmitterOptions options, int appId, int revision);
+    void WriteSubTable(GeneratedSubTableModel model, CodeEmitterOptions options, int appId, int revision);
     void WriteHelper(GeneratedHelperClass model, CodeEmitterOptions options, int appId, int revision);
     void WriteRawMetadata(KintoneAppMetadata metadata, RawOptions options);
 }

@@ -44,14 +44,14 @@ internal class Program {
                 services.AddSingleton<IFileWriter, FileWriter>();
                 services.AddSingleton<ISchemaConverter, SchemaConverter>();
                 services.AddSingleton<ConfigLoader>();
-                
+
                 // KintoneNetLibrary.CodeGen 関連サービス
                 services.AddTransient<ISchemaProvider, SchemaProvider>();
                 services.AddTransient<ICodeEmitter, CSharpCodeEmitter>();
                 services.AddTransient<INameConverter, NameConverter>();
                 services.AddTransient<ITypeMapper, CSharpTypeMapper>();
                 services.AddTransient<IXmlCommentBuilder, XmlCommentBuilder>();
-                services.AddTransient<ISubtableEmitter, CSharpSubtableEmitter>();
+                services.AddTransient<ISubTableEmitter, CSharpSubTableEmitter>();
                 services.AddTransient<IHelperClassEmitter, CSharpHelperClassEmitter>();
                 services.AddTransient<ISchemaProvider, SchemaProvider>();
 

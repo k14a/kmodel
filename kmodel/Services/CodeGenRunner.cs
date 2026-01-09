@@ -10,7 +10,7 @@ public class CodeGenRunner(
     ISchemaConverter schemaConverter,
     ISchemaProvider schemaProvider,
     ICodeEmitter codeEmitter,
-    ILogger<CodeGenRunner> logger){
+    ILogger<CodeGenRunner> logger) {
     private readonly IFileWriter _fileWriter = fileWriter;
     private readonly ISchemaConverter _schemaConverter = schemaConverter;
     private readonly ISchemaProvider _schemaProvider = schemaProvider;
@@ -40,10 +40,10 @@ public class CodeGenRunner(
             // 5. ファイル出力
             this._fileWriter.WriteMainModel(result.MainModelCode, emitterOptions, options.AppId, schema.Revision);
 
-            foreach (var sub in result.SubtableModels){
-                this._fileWriter.WriteSubtable(sub, emitterOptions, options.AppId, schema.Revision);
+            foreach (var sub in result.SubTableModels) {
+                this._fileWriter.WriteSubTable(sub, emitterOptions, options.AppId, schema.Revision);
             }
-            foreach (var helper in result.HelperClasses){
+            foreach (var helper in result.HelperClasses) {
                 this._fileWriter.WriteHelper(helper, emitterOptions, options.AppId, schema.Revision);
             }
 

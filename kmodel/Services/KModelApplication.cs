@@ -4,7 +4,7 @@ using kmodel.Config;
 namespace kmodel.Services;
 
 /// <summary>
-/// 
+/// kmodelアプリケーションのメイン処理クラス
 /// </summary>
 /// <param name="configLoader"></param>
 /// <param name="runner"></param>
@@ -12,7 +12,7 @@ namespace kmodel.Services;
 public class KModelApplication(
     ConfigLoader configLoader,
     CodeGenRunner runner,
-    ILogger<KModelApplication> logger){
+    ILogger<KModelApplication> logger) {
 
     private readonly ILogger<KModelApplication> _logger = logger;
     private readonly ConfigLoader _configLoader = configLoader;
@@ -21,21 +21,20 @@ public class KModelApplication(
     public KModelConfig Config { get; private set; } = default!;
 
     /// <summary>
-    /// 
+    /// アプリケーションの実行
     /// </summary>
     /// <returns></returns>
     public async Task RunAsync() {
         var baseDirectory = AppContext.BaseDirectory;
         var path = Path.Combine(baseDirectory, "kmodel.config.json");
         this.Config = this._configLoader.Load(path);
-        // this.Config = this._configLoader.Load("kmodel.config.json");
 
         foreach (var gen in this.Config.Generates) {
             this._logger.LogInformation("Processing AppId: {appId}", gen.AppId);
             await this._runner.RunAsync(gen, this.Config.SubDomain);
         }
 
-        foreach(var raw in this.Config.Raws) {
+        foreach (var raw in this.Config.Raws) {
             this._logger.LogInformation("Processing AppId: {appId}", raw.AppId);
             await this._runner.RunRawAsync(raw, this.Config.SubDomain);
         }

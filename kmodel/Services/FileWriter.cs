@@ -10,21 +10,48 @@ namespace kmodel.Services;
 public class FileWriter(ILogger<FileWriter> logger) : IFileWriter {
     private readonly ILogger<FileWriter> _logger = logger;
 
+    /// <summary>
+    /// メインモデルファイルを書き込む
+    /// </summary>
+    /// <param name="code"></param>
+    /// <param name="options"></param>
+    /// <param name="appId"></param>
+    /// <param name="revision"></param>
     public void WriteMainModel(string code, CodeEmitterOptions options, int appId, int revision) {
         var fileName = $"{options.MainClassName}.cs";
         this.WriteFile(fileName, code, options, appId, revision);
     }
 
-    public void WriteSubtable(GeneratedSubtableModel model, CodeEmitterOptions options, int appId, int revision) {
+    /// <summary>
+    /// サブテーブルモデルファイルを書き込む
+    /// </summary>
+    /// <param name="model"></param>
+    /// <param name="options"></param>
+    /// <param name="appId"></param>
+    /// <param name="revision"></param>
+    public void WriteSubTable(GeneratedSubTableModel model, CodeEmitterOptions options, int appId, int revision) {
         var fileName = $"{model.ClassName}.cs";
         this.WriteFile(fileName, model.Code, options, appId, revision);
     }
 
+    /// <summary>
+    /// ヘルパークラスファイルを書き込む
+    /// </summary>
+    /// <param name="model"></param>
+    /// <param name="options"></param>
+    /// <param name="appId"></param>
+    /// <param name="revision"></param>
     public void WriteHelper(GeneratedHelperClass model, CodeEmitterOptions options, int appId, int revision) {
         var fileName = $"{model.ClassName}.cs";
         this.WriteFile(fileName, model.Code, options, appId, revision);
     }
 
+    /// <summary>
+    /// Raw メタデータを書き込む
+    /// </summary>
+    /// <param name="metadata"></param>
+    /// <param name="options"></param>
+    /// <exception cref="NotImplementedException"></exception>
     public void WriteRawMetadata(KintoneAppMetadata metadata, RawOptions options) {
         throw new NotImplementedException();
     }
@@ -40,7 +67,7 @@ public class FileWriter(ILogger<FileWriter> logger) : IFileWriter {
         }
 
         // 2. 出力ディレクトリの存在保証
-        EnsureOutputDirectory(options.OutputDirectory);
+        this.EnsureOutputDirectory(options.OutputDirectory);
 
         // 3. 絶対パス生成（NormalizePaths 済み前提）
         var path = BuildPath(fileName, options);
@@ -56,7 +83,7 @@ public class FileWriter(ILogger<FileWriter> logger) : IFileWriter {
         header.AppendLine($"// AppId: {appId}");
         header.AppendLine($"// Revision: {revision}");
 
-        var finalCode = header.ToString()  + code;
+        var finalCode = header.ToString() + code;
 
         // 5. 書き込み
         File.WriteAllText(path.FullName, finalCode);
