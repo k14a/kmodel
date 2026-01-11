@@ -33,15 +33,15 @@ public class KModelApplication(
             var path = Path.Combine(baseDirectory, "kmodel.config.json");
             this.Config = this._configLoader.Load(path);
 
-            // foreach (var gen in this.Config.Generates) {
-            //     this._logger.LogInformation("Processing AppId: {appId}", gen.AppId);
-            //     await this._runner.RunAsync(gen, this.Config.SubDomain);
-            // }
+            foreach (var gen in this.Config.Generates) {
+                this._logger.LogInformation("Processing AppId: {appId}", gen.AppId);
+                await this._runner.RunAsync(gen, this.Config.SubDomain);
+            }
 
-            // foreach (var raw in this.Config.Raws) {
-            //     this._logger.LogInformation("Processing AppId: {appId}", raw.AppId);
-            //     await this._runner.RunRawAsync(raw, this.Config.SubDomain);
-            // }
+            foreach (var raw in this.Config.Raws) {
+                this._logger.LogInformation("Processing AppId: {appId}", raw.AppId);
+                await this._runner.RunRawAsync(raw, this.Config.SubDomain);
+            }
 
             foreach (var diff in this.Config.Diffs) {
                 this._logger.LogInformation("Processing AppId: {appId}", diff.AppId);
