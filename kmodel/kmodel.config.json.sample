@@ -30,6 +30,9 @@
       // 任意: ドロップダウンなどの選択肢を enum として生成するか
       "generateEnums": false,
 
+      // 任意: 生成言語(デフォルトはCSharp(C#))
+      "generateLanguage": "CSharp",
+
       // 任意: 生成ファイルの出力先ディレクトリ
       "outputDirectory": "./Models/App123",
 

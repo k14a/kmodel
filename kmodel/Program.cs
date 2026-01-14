@@ -1,14 +1,15 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using kmodel.Config;
-using kmodel.Services;
 using KintoneNetLibrary.CodeGen.Application.Interfaces;
 using KintoneNetLibrary.CodeGen.Application.Services;
 using KintoneNetLibrary.Application.Interfaces;
 using KintoneNetLibrary.Infrastructure.Api;
 using KintoneNetLibrary.CodeGen.Application.Emitters;
+using kmodel.Config;
+using kmodel.Services;
 using kmodel.Interfaces;
+using kmodel.Factories;
 
 internal class Program {
     static async Task Main(string[] args) {
@@ -44,18 +45,28 @@ internal class Program {
                 services.AddSingleton<CodeGenRunner>();
                 services.AddSingleton<IFileWriter, FileWriter>();
                 services.AddSingleton<ISchemaConverter, SchemaConverter>();
-                services.AddSingleton<ConfigLoader>();
                 services.AddSingleton<IMetadataDiffer, MetadataDiffer>();
 
                 // KintoneNetLibrary.CodeGen 関連サービス
                 services.AddTransient<ISchemaProvider, SchemaProvider>();
-                services.AddTransient<ICodeEmitter, CSharpCodeEmitter>();
-                services.AddTransient<INameConverter, NameConverter>();
-                services.AddTransient<ITypeMapper, CSharpTypeMapper>();
-                services.AddTransient<IXmlCommentBuilder, XmlCommentBuilder>();
+                services.AddTransient<IXmlCommentBuilder, CSharpXmlCommentBuilder>();
                 services.AddTransient<ISubTableEmitter, CSharpSubTableEmitter>();
                 services.AddTransient<IHelperClassEmitter, CSharpHelperClassEmitter>();
-                services.AddTransient<ISchemaProvider, SchemaProvider>();
+
+                // Codeエミッターファクトリ
+                services.AddTransient<CSharpCodeEmitter>();
+                services.AddTransient<PythonCodeEmitter>();
+                services.AddSingleton<ICodeEmitterFactory, CodeEmitterFactory>();
+
+                // NameConverterファクトリ
+                services.AddTransient<CSharpNameConverter>();
+                services.AddTransient<PythonNameConverter>();
+                services.AddSingleton<INameConverterFactory, NameConverterFactory>();
+
+                // TypeMapperファクトリ
+                services.AddTransient<CSharpTypeMapper>();
+                services.AddTransient<PythonTypeMapper>();
+                services.AddSingleton<ITypeMapperFactory, TypeMapperFactory>();
 
                 // KintoneNetLibrary 関連サービス
                 services.AddTransient<IKintoneAppMetadataApi, KintoneAppMetadataApi>();

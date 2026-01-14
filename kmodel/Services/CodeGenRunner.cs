@@ -13,20 +13,20 @@ namespace kmodel.Services;
 /// <param name="fileWriter"></param>
 /// <param name="schemaConverter"></param>
 /// <param name="schemaProvider"></param>
-/// <param name="codeEmitter"></param>
+/// <param name="codeEmitterFactory"></param>
 /// <param name="metadataDiffer"></param>
 /// <param name="logger"></param>
 public class CodeGenRunner(
     IFileWriter fileWriter,
     ISchemaConverter schemaConverter,
     ISchemaProvider schemaProvider,
-    ICodeEmitter codeEmitter,
+    ICodeEmitterFactory codeEmitterFactory,
     IMetadataDiffer metadataDiffer,
     ILogger<CodeGenRunner> logger) {
     private readonly IFileWriter _fileWriter = fileWriter;
     private readonly ISchemaConverter _schemaConverter = schemaConverter;
     private readonly ISchemaProvider _schemaProvider = schemaProvider;
-    private readonly ICodeEmitter _codeEmitter = codeEmitter;
+    private readonly ICodeEmitterFactory _codeEmitterFactory = codeEmitterFactory;
     private readonly IMetadataDiffer _metadataDiffer = metadataDiffer;
     private readonly ILogger<CodeGenRunner> _logger = logger;
 
@@ -49,7 +49,8 @@ public class CodeGenRunner(
 
             // 3. コード生成（ICodeEmitter）
             this._logger.LogInformation("Generating code...");
-            var result = this._codeEmitter.Emit(schema, emitterOptions);
+            var codeEmitter = this._codeEmitterFactory.Create(options.GenerateLanguage);
+            var result = codeEmitter.Emit(schema, emitterOptions);
 
             // 4. 出力ディレクトリ作成
             Directory.CreateDirectory(emitterOptions.OutputDirectory);

@@ -1,3 +1,5 @@
+using kmodel.Enums;
+
 namespace kmodel.Options;
 
 /// <summary>
@@ -33,6 +35,10 @@ public class GenerateOptions {
     /// 列挙型を生成するか
     /// </summary>
     public bool GenerateEnums { get; set; }
+    /// <summary>
+    /// 生成言語
+    /// </summary>
+    public GenerateLanguages GenerateLanguage { get; set; } = GenerateLanguages.CSharp;
     /// <summary>
     /// 出力ディレクトリ
     /// </summary>

@@ -48,6 +48,18 @@
                         "description": "Generate enums for dropdown/multi-select fields.",
                         "default": false
                     },
+                    "generateLanguage": {
+                        "type": "string",
+                        "description": "Programming language for model generation.",
+                        "enum": [
+                            "CSharp",
+                            "Python",
+                            "TypeScript",
+                            "Go",
+                            "Java"
+                        ],
+                        "default": "CSharp"
+                    },
                     "outputDirectory": {
                         "type": "string",
                         "description": "Output directory for generated files (relative paths are resolved from the kmodel execution directory).",
