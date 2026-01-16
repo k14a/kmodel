@@ -1,3 +1,4 @@
+using KintoneNetLibrary.CodeGen.Domain.Enums;
 using kmodel.Enums;
 
 namespace kmodel.Options;
