@@ -7,45 +7,97 @@ namespace kmodel.Options;
 /// コード生成オプション
 /// </summary>
 public class GenerateOptions {
+    #region <<for CodeEmitterOptions>>
     /// <summary>
     /// アプリID
     /// </summary>
     public int AppId { get; set; }
+
     /// <summary>
     /// APIトークン
     /// </summary>
     public string ApiToken { get; set; } = string.Empty;
-    /// <summary>
-    /// 名前空間
-    /// </summary>
-    public string Namespace { get; set; } = "KintoneModels";
-    /// <summary>
-    /// クラス名
-    /// </summary>
-    public string? ClassName { get; set; }
-    /// <summary>
-    /// クラスの代わりにレコードを使用するか
-    /// </summary>
-    public bool UseRecord { get; set; }
+
     /// <summary>
     /// Pure モードを使用するか
     /// </summary>
     /// <notes>falseの場合、KintoneNetLibrary 依存のコードが生成されます。</notes>
     public bool PureMode { get; set; }
+
     /// <summary>
     /// 列挙型を生成するか
     /// </summary>
     public bool GenerateEnums { get; set; }
+
     /// <summary>
     /// 生成言語
     /// </summary>
     public GenerateLanguages GenerateLanguage { get; set; } = GenerateLanguages.CSharp;
+
+    /// <summary>
+    /// サブテーブルクラスを別ファイルに分割するか
+    /// </summary>
+    public bool SplitSubTableFiles { get; set; } = true;
+
+    /// <summary>
+    /// pure モードの補助クラス（UserInfo など）を別ファイルに分割するか
+    /// </summary>
+    public bool SplitHelperFiles { get; set; } = true;
+
+    /// <summary>
+    /// 生成ファイルの先頭に出力するコメント
+    /// </summary>
+    public string? HeaderComment { get; set; }
+    #endregion
+
+    #region <<for CSharpEmitterOptions>>
+    /// <summary>
+    /// 名前空間
+    /// </summary>
+    public string Namespace { get; set; } = "KintoneModels";
+
+    /// <summary>
+    /// クラス名
+    /// </summary>
+    public string? ClassName { get; set; }
+
+    /// <summary>
+    /// クラスの代わりにレコードを使用するか
+    /// </summary>
+    public bool UseRecord { get; set; }
+
+    /// <summary>
+    /// partial class を生成するか
+    /// </summary>
+    public bool UsePartial { get; set; } = true;
+
+    /// <summary>
+    /// #nullable enable を付与するか
+    /// </summary>
+    public bool NullableEnabled { get; set; } = true;
+    #endregion
+
+    #region <<for PythonEmitterOptions>>
+    /// <summary>
+    /// 生成するモジュール名
+    /// </summary>
+    public string ModuleName { get; set; } = "kintone_models";
+
+    /// <summary>
+    /// type hint を付与するか
+    /// </summary>
+    public bool UseTypeHint { get; set; } = true;
+    #endregion
+
+    #region <<for FileWriterOptions>>
     /// <summary>
     /// 出力ディレクトリ
     /// </summary>
     public string OutputDirectory { get; set; } = ".";
+
     /// <summary>
     /// 既存ファイルを上書きするか
     /// </summary>
     public bool OverwriteExistingFiles { get; set; }
+    #endregion
 }

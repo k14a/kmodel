@@ -53,13 +53,14 @@ public class CodeGenRunner(
             Directory.CreateDirectory(options.OutputDirectory);
 
             // 5. ファイル出力
-            this._fileWriter.WriteMainModel(result.MainModelCode, emitterOptions, options.AppId, schema.Revision);
+            var writerOptions = options.ToFileWriterOptions();
+            this._fileWriter.WriteMainModel(result.MainModelCode, emitterOptions, writerOptions, options.AppId, schema.Revision);
 
             foreach (var sub in result.SubTableModels) {
-                this._fileWriter.WriteSubTable(sub, emitterOptions, options.AppId, schema.Revision);
+                this._fileWriter.WriteSubTable(sub, emitterOptions, writerOptions, options.AppId, schema.Revision);
             }
             foreach (var helper in result.HelperClasses) {
-                this._fileWriter.WriteHelper(helper, emitterOptions, options.AppId, schema.Revision);
+                this._fileWriter.WriteHelper(helper, emitterOptions, writerOptions, options.AppId, schema.Revision);
             }
 
             this._logger.LogInformation("Code generation completed for AppId: {appId}", options.AppId);

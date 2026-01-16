@@ -1,7 +1,6 @@
 using KintoneNetLibrary.CodeGen.Domain.Models;
 using KintoneNetLibrary.CodeGen.Domain.Options;
 using KintoneNetLibrary.Domain.Entities;
-using kmodel.Models;
 using kmodel.Options;
 
 namespace kmodel.Interfaces;
@@ -14,26 +13,29 @@ public interface IFileWriter {
     /// メインモデルファイルを書き込む
     /// </summary>
     /// <param name="code"></param>
-    /// <param name="options"></param>
+    /// <param name="emitterOptions"></param>
+    /// <param name="fileOptions"></param>
     /// <param name="appId"></param>
     /// <param name="revision"></param>
-    void WriteMainModel(string code, CodeEmitterOptions options, int appId, int revision);
+    void WriteMainModel(string code, CodeEmitterOptions emitterOptions, FileWriterOptions fileOptions, int appId, int revision);
     /// <summary>
     /// サブテーブルモデルファイルを書き込む
     /// </summary>
     /// <param name="model"></param>
-    /// <param name="options"></param>
+    /// <param name="emitterOptions"></param>
+    /// <param name="fileOptions"></param>
     /// <param name="appId"></param>
     /// <param name="revision"></param>
-    void WriteSubTable(GeneratedSubTableModel model, CodeEmitterOptions options, int appId, int revision);
+    void WriteSubTable(GeneratedSubTableModel model, CodeEmitterOptions emitterOptions, FileWriterOptions fileOptions, int appId, int revision);
     /// <summary>
     /// ヘルパークラスファイルを書き込む
     /// </summary>
     /// <param name="model"></param>
-    /// <param name="options"></param>
+    /// <param name="emitterOptions"></param>
+    /// <param name="fileOptions"></param>
     /// <param name="appId"></param>
     /// <param name="revision"></param>
-    void WriteHelper(GeneratedHelperClass model, CodeEmitterOptions options, int appId, int revision);
+    void WriteHelper(GeneratedHelperClass model, CodeEmitterOptions emitterOptions, FileWriterOptions fileOptions, int appId, int revision);
     /// <summary>
     /// Raw メタデータを書き込む
     /// </summary>

@@ -1,77 +1,66 @@
 using System.Text;
-using System.Text.Json;
 using KintoneNetLibrary.CodeGen.Domain.Models;
 using KintoneNetLibrary.CodeGen.Domain.Options;
 using KintoneNetLibrary.Domain.Entities;
 using kmodel.Enums;
 using kmodel.Extensions;
 using kmodel.Interfaces;
-using kmodel.Models;
 using kmodel.Options;
 using Microsoft.Extensions.Logging;
 
 namespace kmodel.Services;
 
 /// <summary>
-/// ファイル書き込みクラス
+/// 多言語対応のファイル書き込みクラス
 /// </summary>
-/// <param name="logger"></param>
 public class FileWriter(ILogger<FileWriter> logger) : IFileWriter {
     private readonly ILogger<FileWriter> _logger = logger;
 
-    /// <summary>
-    /// メインモデルファイルを書き込む
-    /// </summary>
-    /// <param name="code"></param>
-    /// <param name="options"></param>
-    /// <param name="appId"></param>
-    /// <param name="revision"></param>
-    public void WriteMainModel(string code, CodeEmitterOptions options, int appId, int revision) {
-        var fileName = $"{options.MainClassName}.cs";
-        this.WriteFile(fileName, code, options, appId, revision);
+    // ================================
+    // メインモデル
+    // ================================
+    public void WriteMainModel(
+        string code,
+        CodeEmitterOptions emitterOptions,
+        FileWriterOptions fileOptions,
+        int appId,
+        int revision) {
+        var fileName = $"{emitterOptions.MainClassName}{emitterOptions.FileExtension}";
+        this.WriteFile(fileName, code, emitterOptions, fileOptions, appId, revision);
     }
 
-    /// <summary>
-    /// サブテーブルモデルファイルを書き込む
-    /// </summary>
-    /// <param name="model"></param>
-    /// <param name="options"></param>
-    /// <param name="appId"></param>
-    /// <param name="revision"></param>
-    public void WriteSubTable(GeneratedSubTableModel model, CodeEmitterOptions options, int appId, int revision) {
-        var fileName = $"{model.ClassName}.cs";
-        this.WriteFile(fileName, model.Code, options, appId, revision);
+    // ================================
+    // サブテーブル
+    // ================================
+    public void WriteSubTable(
+        GeneratedSubTableModel model,
+        CodeEmitterOptions emitterOptions,
+        FileWriterOptions fileOptions,
+        int appId,
+        int revision) {
+        var fileName = $"{model.ClassName}{emitterOptions.FileExtension}";
+        this.WriteFile(fileName, model.Code, emitterOptions, fileOptions, appId, revision);
     }
 
-    /// <summary>
-    /// ヘルパークラスファイルを書き込む
-    /// </summary>
-    /// <param name="model"></param>
-    /// <param name="options"></param>
-    /// <param name="appId"></param>
-    /// <param name="revision"></param>
-    public void WriteHelper(GeneratedHelperClass model, CodeEmitterOptions options, int appId, int revision) {
-        var fileName = $"{model.ClassName}.cs";
-        this.WriteFile(fileName, model.Code, options, appId, revision);
+    // ================================
+    // ヘルパークラス
+    // ================================
+    public void WriteHelper(
+        GeneratedHelperClass model,
+        CodeEmitterOptions emitterOptions,
+        FileWriterOptions fileOptions,
+        int appId,
+        int revision) {
+        var fileName = $"{model.ClassName}{emitterOptions.FileExtension}";
+        this.WriteFile(fileName, model.Code, emitterOptions, fileOptions, appId, revision);
     }
 
-    /// <summary>
-    /// Raw メタデータを書き込む
-    /// </summary>
-    /// <param name="metadata"></param>
-    /// <param name="options"></param>
-    /// <exception cref="NotImplementedException"></exception>
-    public void WriteRawMetadata(KintoneAppMetadata metadata, RawOptions options) {
-        throw new NotImplementedException();
-    }
-
-    /// <summary>
-    /// 差分結果を書き込む
-    /// </summary>
-    /// <param name="diffs"></param>
-    /// <param name="options"></param>
-    /// <exception cref="NotImplementedException"></exception>
-    public void WriteDiffResults(IReadOnlyList<KintoneMetadataDiff> diffs, DiffOptions options) {
+    // ================================
+    // 差分出力（言語非依存）
+    // ================================
+    public void WriteDiffResults(
+        IReadOnlyList<KintoneMetadataDiff> diffs,
+        DiffOptions options) {
         var fileName = options.DiffOutputFile ?? $"App{options.AppId}.diff.txt";
         fileName = fileName.Replace("{appId}", options.AppId.ToString());
 
@@ -82,68 +71,65 @@ public class FileWriter(ILogger<FileWriter> logger) : IFileWriter {
             return;
         }
 
-        var context = options.OutputFormat switch {
-            DiffOutputFormats.Json => JsonSerializer.Serialize(diffs, new JsonSerializerOptions { WriteIndented = true }),
+        var content = options.OutputFormat switch {
+            DiffOutputFormats.Json => System.Text.Json.JsonSerializer.Serialize(diffs, new System.Text.Json.JsonSerializerOptions { WriteIndented = true }),
             DiffOutputFormats.Markdown => string.Join(Environment.NewLine + Environment.NewLine, diffs.Select(d => d.ToMarkdown())),
-            _ => string.Join(Environment.NewLine, diffs.Select(d => d.ToText())),
+            _ => string.Join(Environment.NewLine, diffs.Select(d => d.ToText()))
         };
 
-        File.WriteAllText(path, context);
+        File.WriteAllText(path, content);
     }
 
     /// <summary>
-    /// 共通処理（パス生成・上書きチェック・書き込み）
+    /// Raw メタデータを書き込む(未実装)
     /// </summary>
-    /// <param name="fileName"></param>
-    /// <param name="code"></param>
+    /// <param name="metadata"></param>
     /// <param name="options"></param>
-    /// <param name="appId"></param>
-    /// <param name="revision"></param>
-    private void WriteFile(string fileName, string code, CodeEmitterOptions options, int appId, int revision) {
-        // 1. ファイル名の安全性チェック
+    /// <exception cref="NotImplementedException"></exception>
+    public void WriteRawMetadata(KintoneAppMetadata metadata, RawOptions options) => throw new NotImplementedException();
+
+    // ================================
+    // 共通ファイル出力処理
+    // ================================
+    private void WriteFile(
+        string fileName,
+        string code,
+        CodeEmitterOptions emitterOptions,
+        FileWriterOptions fileOptions,
+        int appId,
+        int revision) {
         if (!IsValidFileName(fileName)) {
             this._logger.LogError("Invalid file name detected: {FileName}", fileName);
             return;
         }
 
-        // 2. 出力ディレクトリの存在保証
-        this.EnsureOutputDirectory(options.OutputDirectory);
+        this.EnsureOutputDirectory(fileOptions.OutputDirectory);
 
-        // 3. 絶対パス生成（NormalizePaths 済み前提）
-        var path = BuildPath(fileName, options);
+        var path = new FileInfo(Path.Combine(fileOptions.OutputDirectory, fileName));
 
-        // 4. 上書きチェック
-        if (!CanWrite(path, options)) {
+        if (!CanWrite(path, fileOptions)) {
             this._logger.LogWarning("File already exists and overwrite is disabled: {File}", path.FullName);
             return;
         }
 
+        // ---- ヘッダー生成（言語非依存） ----
         var header = new StringBuilder();
-        header.AppendLine("// Generated by kmodel");
-        header.AppendLine($"// AppId: {appId}");
-        header.AppendLine($"// Revision: {revision}");
+
+        if (!string.IsNullOrWhiteSpace(emitterOptions.HeaderComment))
+            header.AppendLine($"{emitterOptions.CommentPrefix} {emitterOptions.HeaderComment}");
+
+        header.AppendLine($"{emitterOptions.CommentPrefix} AppId: {appId}");
+        header.AppendLine($"{emitterOptions.CommentPrefix} Revision: {revision}");
 
         var finalCode = header.ToString() + code;
 
-        // 5. 書き込み
         File.WriteAllText(path.FullName, finalCode);
         this._logger.LogInformation("  - {File}", path.FullName);
     }
 
-    /// <summary>
-    /// パス生成（絶対パス前提）
-    /// </summary>
-    /// <param name="fileName"></param>
-    /// <param name="options"></param>
-    /// <returns></returns>
-    private static FileInfo BuildPath(string fileName, CodeEmitterOptions options) {
-        return new FileInfo(Path.Combine(options.OutputDirectory, fileName));
-    }
-
-    /// <summary>
-    /// 出力ディレクトリの存在保証
-    /// </summary>
-    /// <param name="outputDirectory"></param>
+    // ================================
+    // ユーティリティ
+    // ================================
     private void EnsureOutputDirectory(string outputDirectory) {
         if (!Directory.Exists(outputDirectory)) {
             this._logger.LogDebug("Output directory does not exist. Creating: {Dir}", outputDirectory);
@@ -151,22 +137,9 @@ public class FileWriter(ILogger<FileWriter> logger) : IFileWriter {
         }
     }
 
-    /// <summary>
-    /// 上書きチェック
-    /// </summary>
-    /// <param name="path"></param>
-    /// <param name="options"></param>
-    /// <returns></returns>
-    private static bool CanWrite(FileInfo path, CodeEmitterOptions options) {
-        return !path.Exists || options.OverwriteExistingFiles;
-    }
+    private static bool CanWrite(FileInfo path, FileWriterOptions options)
+        => !path.Exists || options.OverwriteExistingFiles;
 
-    /// <summary>
-    /// ファイル名の安全性チェック
-    /// </summary>
-    /// <param name="fileName"></param>
-    /// <returns></returns>
-    private static bool IsValidFileName(string fileName) {
-        return fileName.IndexOfAny(Path.GetInvalidFileNameChars()) < 0;
-    }
+    private static bool IsValidFileName(string fileName)
+        => fileName.IndexOfAny(Path.GetInvalidFileNameChars()) < 0;
 }
