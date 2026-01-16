@@ -71,7 +71,7 @@ public class FileWriter(ILogger<FileWriter> logger) : IFileWriter {
     /// <param name="diffs"></param>
     /// <param name="options"></param>
     /// <exception cref="NotImplementedException"></exception>
-    public void WriteDiffResults(List<DiffResult> diffs, DiffOptions options) {
+    public void WriteDiffResults(IReadOnlyList<KintoneMetadataDiff> diffs, DiffOptions options) {
         var fileName = options.DiffOutputFile ?? $"App{options.AppId}.diff.txt";
         fileName = fileName.Replace("{appId}", options.AppId.ToString());
 

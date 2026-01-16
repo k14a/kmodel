@@ -2,14 +2,14 @@
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using KintoneNetLibrary.CodeGen.Application.Interfaces;
-using KintoneNetLibrary.CodeGen.Application.Services;
 using KintoneNetLibrary.Application.Interfaces;
 using KintoneNetLibrary.Infrastructure.Api;
 using KintoneNetLibrary.CodeGen.Application.Emitters;
+using KintoneNetLibrary.CodeGen.Infrastructure.Services;
 using kmodel.Config;
 using kmodel.Services;
 using kmodel.Interfaces;
-using kmodel.Factories;
+using KintoneNetLibrary.CodeGen.Infrastructure.Factories;
 
 internal class Program {
     static async Task Main(string[] args) {
@@ -45,7 +45,6 @@ internal class Program {
                 services.AddSingleton<CodeGenRunner>();
                 services.AddSingleton<IFileWriter, FileWriter>();
                 services.AddSingleton<ISchemaConverter, SchemaConverter>();
-                services.AddSingleton<IMetadataDiffer, MetadataDiffer>();
 
                 // KintoneNetLibrary.CodeGen 関連サービス
                 services.AddTransient<ISchemaProvider, SchemaProvider>();

@@ -14,20 +14,17 @@ namespace kmodel.Services;
 /// <param name="schemaConverter"></param>
 /// <param name="schemaProvider"></param>
 /// <param name="codeEmitterFactory"></param>
-/// <param name="metadataDiffer"></param>
 /// <param name="logger"></param>
 public class CodeGenRunner(
     IFileWriter fileWriter,
     ISchemaConverter schemaConverter,
     ISchemaProvider schemaProvider,
     ICodeEmitterFactory codeEmitterFactory,
-    IMetadataDiffer metadataDiffer,
     ILogger<CodeGenRunner> logger) {
     private readonly IFileWriter _fileWriter = fileWriter;
     private readonly ISchemaConverter _schemaConverter = schemaConverter;
     private readonly ISchemaProvider _schemaProvider = schemaProvider;
     private readonly ICodeEmitterFactory _codeEmitterFactory = codeEmitterFactory;
-    private readonly IMetadataDiffer _metadataDiffer = metadataDiffer;
     private readonly ILogger<CodeGenRunner> _logger = logger;
 
     /// <summary>
@@ -53,7 +50,7 @@ public class CodeGenRunner(
             var result = codeEmitter.Emit(schema, emitterOptions);
 
             // 4. 出力ディレクトリ作成
-            Directory.CreateDirectory(emitterOptions.OutputDirectory);
+            Directory.CreateDirectory(options.OutputDirectory);
 
             // 5. ファイル出力
             this._fileWriter.WriteMainModel(result.MainModelCode, emitterOptions, options.AppId, schema.Revision);
@@ -129,9 +126,8 @@ public class CodeGenRunner(
         this._logger.LogInformation("Starting metadata diff for AppId: {appId}", options.AppId);
 
         try {
-            // 1. 最新metadataを取得
+            // 1. ドメイン設定
             this._schemaProvider.SetDomain(subDomain);
-            var latest = await this._schemaProvider.GetMetadataAsync(options.AppId, options.ApiToken);
 
             // 2. 比較対象ファイルを決定
             string? previousFile = options.CompareWithFile;
@@ -149,12 +145,16 @@ public class CodeGenRunner(
             // 3. 比較対象のJSONを読み込む
             var previousJson = await File.ReadAllTextAsync(previousFile);
             var previous = JsonSerializer.Deserialize<KintoneAppMetadata>(previousJson);
+            if (previous == null) {
+                this._logger.LogError("Failed to deserialize previous metadata from file: {file}", previousFile);
+                return;
+            }
 
-            // 4. 差分比較
-            var diffs = this._metadataDiffer.Compare(previous!, latest);
-            foreach (var diff in diffs) {
-                diff.BeforeRevision = previous!.Revision;
-                diff.AfterRevision = latest.Revision;
+            // 4. 差分取得
+            var diffs = await this._schemaProvider.CompareAsync(previous, options.AppId, options.ApiToken);
+            if (diffs.Count == 0) {
+                this._logger.LogInformation("No differences found between the metadata.");
+                return;
             }
 
             // 5. 差分出力

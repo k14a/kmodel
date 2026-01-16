@@ -45,5 +45,5 @@ public interface IFileWriter {
     /// </summary>
     /// <param name="diffs"></param>
     /// <param name="options"></param>
-    void WriteDiffResults(List<DiffResult> diffs, DiffOptions options);
+    void WriteDiffResults(IReadOnlyList<KintoneMetadataDiff> diffs, DiffOptions options);
 }

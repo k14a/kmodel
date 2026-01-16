@@ -1,8 +1,7 @@
 using System.Text;
 using System.Text.Json;
 using KintoneNetLibrary.Domain.Entities;
-using kmodel.Enums;
-using kmodel.Models;
+using KintoneNetLibrary.Domain.Enums;
 
 namespace kmodel.Extensions;
 
@@ -10,13 +9,13 @@ namespace kmodel.Extensions;
 /// <summary>
 /// DiffResult 拡張メソッド
 /// </summary>
-public static class DiffResultExtensions {
+public static class KintoneMetadataDiffExtensions {
     /// <summary>
     /// DiffResult をテキスト形式で出力する
     /// </summary>
     /// <param name="diff"></param>
     /// <returns></returns>
-    public static string ToText(this DiffResult diff) {
+    public static string ToText(this KintoneMetadataDiff diff) {
         var sb = new StringBuilder();
 
         sb.AppendLine($"Diff Summary (Rev {diff.BeforeRevision} → Rev {diff.AfterRevision})");
@@ -58,7 +57,7 @@ public static class DiffResultExtensions {
     /// </summary>
     /// <param name="diff"></param>
     /// <returns></returns>
-    public static string ToJson(this DiffResult diff) {
+    public static string ToJson(this KintoneMetadataDiff diff) {
         return JsonSerializer.Serialize(diff, new JsonSerializerOptions {
             WriteIndented = true
         });
@@ -69,7 +68,7 @@ public static class DiffResultExtensions {
     /// </summary>
     /// <param name="diff"></param>
     /// <returns></returns>
-    public static string ToMarkdown(this DiffResult diff) {
+    public static string ToMarkdown(this KintoneMetadataDiff diff) {
         var sb = new StringBuilder();
 
         // タイトル行
@@ -79,16 +78,16 @@ public static class DiffResultExtensions {
 
         // DiffTypeごとの出力
         switch (diff.DiffType) {
-            case DiffTypes.Added:
+            case KintoneMetadataDiffTypes.Added:
                 AppendAfter(sb, diff);
                 break;
 
-            case DiffTypes.Removed:
+            case KintoneMetadataDiffTypes.Removed:
                 AppendBefore(sb, diff);
                 break;
 
-            case DiffTypes.Changed:
-            case DiffTypes.ChangedOptions:
+            case KintoneMetadataDiffTypes.Changed:
+            case KintoneMetadataDiffTypes.ChangedOptions:
                 AppendBefore(sb, diff);
                 AppendAfter(sb, diff);
                 AppendChangedProperties(sb, diff);
@@ -106,19 +105,19 @@ public static class DiffResultExtensions {
 
         return sb.ToString();
     }
-    private static void AppendBefore(StringBuilder sb, DiffResult diff) {
+    private static void AppendBefore(StringBuilder sb, KintoneMetadataDiff diff) {
         if (diff.Before == null) { return; }
 
         sb.AppendLine($"- **Before**: `{diff.Before.Type}` / {diff.Before.GetLabelWithCode()}");
     }
 
-    private static void AppendAfter(StringBuilder sb, DiffResult diff) {
+    private static void AppendAfter(StringBuilder sb, KintoneMetadataDiff diff) {
         if (diff.After == null) { return; }
 
         sb.AppendLine($"- **After**: `{diff.After.Type}` / {diff.After.GetLabelWithCode()}");
     }
 
-    private static void AppendChangedProperties(StringBuilder sb, DiffResult diff) {
+    private static void AppendChangedProperties(StringBuilder sb, KintoneMetadataDiff diff) {
         if (diff.ChangedProperties.Count == 0) { return; }
 
         sb.AppendLine("- **Changed Properties:**");
@@ -137,5 +136,5 @@ public static class DiffResultExtensions {
     /// </summary>
     /// <param name="diff"></param>
     /// <returns></returns>
-    private static string GetFieldName(this DiffResult diff) => diff.After?.Code ?? diff.Before?.Code ?? "(unknown)";
+    private static string GetFieldName(this KintoneMetadataDiff diff) => diff.After?.Code ?? diff.Before?.Code ?? "(unknown)";
 }
