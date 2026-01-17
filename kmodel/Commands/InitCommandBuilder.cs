@@ -25,11 +25,11 @@ public static class InitCommandBuilder {
             // 上書き確認
             // -------------------------
             if (File.Exists(configPath)) {
-                Console.Write($"{configPath} already exists. Overwrite? (y/N): ");
+                Console.Write($"File '{configPath}' already exists. Overwrite? (y/N): ");
                 var key = Console.ReadLine()?.Trim().ToLower();
 
                 if (key != "y") {
-                    Console.WriteLine("Canceled.");
+                    Console.WriteLine("Canceled. No changes were made.");
                     return;
                 }
             }
@@ -49,7 +49,7 @@ public static class InitCommandBuilder {
 
             await File.WriteAllTextAsync(configPath, json);
 
-            Console.WriteLine($"✔ Created {configPath}");
+            Console.WriteLine($"✔ Created {configPath}{Environment.NewLine}Next step: edit the file and run `kmodel`");
         });
 
         return cmd;

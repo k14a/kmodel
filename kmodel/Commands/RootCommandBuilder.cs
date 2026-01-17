@@ -8,7 +8,8 @@ public static class RootCommandBuilder {
         var root = new RootCommand("kmodel CLI tool") {
             GenerateCommandBuilder.Build(host),
             DiffCommandBuilder.Build(host),
-            RawCommandBuilder.Build(host)
+            RawCommandBuilder.Build(host),
+            InitCommandBuilder.Build(host)
         };
 
         return root;
