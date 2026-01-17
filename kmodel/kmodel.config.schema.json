@@ -21,23 +21,6 @@
                         "type": "string",
                         "description": "API token for accessing the Kintone app."
                     },
-                    "namespace": {
-                        "type": "string",
-                        "description": "Namespace for generated C# classes.",
-                        "default": "KintoneModels"
-                    },
-                    "className": {
-                        "type": [
-                            "string",
-                            "null"
-                        ],
-                        "description": "Optional class name override. If null, the default naming (App{appId}) is used."
-                    },
-                    "useRecord": {
-                        "type": "boolean",
-                        "description": "Generate C# record types instead of classes.",
-                        "default": false
-                    },
                     "pureMode": {
                         "type": "boolean",
                         "description": "Generate pure POCO models without Kintone-specific attributes.",
@@ -59,6 +42,61 @@
                             "Java"
                         ],
                         "default": "CSharp"
+                    },
+                    "splitSubTableFiles": {
+                        "type": "boolean",
+                        "description": "Generate separate files for sub-table models (applicable for C# and Java).",
+                        "default": true
+                    },
+                    "splitHelperFile": {
+                        "type": "boolean",
+                        "description": "Generate a separate helpers file for utility methods (applicable for C# and Java).",
+                        "default": true
+                    },
+                    "headerComment": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "description": "Optional header comment to include at the top of generated files.",
+                        "default": null
+                    },
+                    "namespace": {
+                        "type": "string",
+                        "description": "Namespace for generated C# classes.",
+                        "default": "KintoneModels"
+                    },
+                    "className": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "description": "Optional class name override (C# only). If null, the default naming (App{appId}) is used."
+                    },
+                    "useRecord": {
+                        "type": "boolean",
+                        "description": "Generate C# record types instead of classes.",
+                        "default": false
+                    },
+                    "usePartial": {
+                        "type": "boolean",
+                        "description": "Generate partial classes (C# only).",
+                        "default": true
+                    },
+                    "nullableEnabled": {
+                        "type": "boolean",
+                        "description": "Enable nullable reference types (C# only).",
+                        "default": true
+                    },
+                    "moduleName": {
+                        "type": "string",
+                        "description": "Optional module name for Python files.",
+                        "default": "kintone_models"
+                    },
+                    "useTypeHint": {
+                        "type": "boolean",
+                        "description": "Use type hints in Python models.",
+                        "default": true
                     },
                     "outputDirectory": {
                         "type": "string",

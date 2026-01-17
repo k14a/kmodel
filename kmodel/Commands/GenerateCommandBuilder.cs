@@ -1,72 +1,40 @@
 using System.CommandLine;
-using System.CommandLine.Invocation;
-using System.CommandLine.NamingConventionBinder;
-using System.CommandLine.Parsing;
-using KintoneNetLibrary.Infrastructure.Api;
-using KintoneNetLibrary.CodeGen.Application.Emitters;
+using Microsoft.Extensions.Hosting;
 using kmodel.Options;
+using KintoneNetLibrary.CodeGen.Domain.Enums;
 using kmodel.Services;
-using KintoneNetLibrary.Domain.Access;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace kmodel.Commands;
 
-public class GenerateCommandBuilder {
-    public RootCommand Build() {
-        // // 1. オプションの定義
-        // var appId = new Option<int>("--app", "Kintone App ID") { Required = true }; // 最新では Required ではなく IsRequired
-        // var ns = new Option<string>("--namespace", "Namespace for generated models") { 
-        //     DefaultValueFactory = _ => "KintoneModels" 
-        // };
-        // var className = new Option<string?>("--class-name");
-        // var pure = new Option<bool>("--pure");
-        // var useRecord = new Option<bool>("--record");
+public static class GenerateCommandBuilder {
+    public static Command Build(IHost host) {
+        var cmd = new Command("generate", "Generate model code from Kintone app schema");
 
-        // // 2. コマンドの作成
-        // var generate = new Command("generate", "Generate C# models from Kintone app") { 
-        //     appId, ns, className, pure, useRecord 
-        // };
+        var sub = new Option<string>("--subdomain") { Required = true };
+        var app = new Option<int>("--app") { Required = true };
+        var token = new Option<string>("--token") { Required = true };
+        var lang = new Option<string>("--lang") { DefaultValueFactory = _ => "CSharp" };
+        var outDir = new Option<string>("--out") { DefaultValueFactory = _ => "." };
 
-        // // 3. ハンドラーの設定 (NamingConventionBinder を使用)
-        // // 引数名は Option の名前に合わせる必要があります (--app -> app, --namespace -> ns)
-        // generate.Handler = CommandHandler.Create<int, string, string?, bool, bool>(
-        //     async (app, @namespace, className, pure, record) => { // パラメータ名は Option 名に準拠
-        //         var opts = new GenerateOptions {
-        //             AppId = app,
-        //             Namespace = @namespace, // ns オプションは namespace 引数にバインドされる
-        //             ClassName = className,
-        //             PureMode = pure,
-        //             UseRecord = record
-        //         };
+        cmd.Add(sub);
+        cmd.Add(app);
+        cmd.Add(token);
+        cmd.Add(lang);
+        cmd.Add(outDir);
 
-        //         var generator = BuildGenerateCommand();
-        //         await generator.ExecuteAsync(opts);
-        //     }
-        // );
+        cmd.SetAction(async result => {
+            var g = new GenerateOptions {
+                AppId = result.GetValue(app),
+                ApiToken = result.GetValue(token),
+                GenerateLanguage = Enum.Parse<GenerateLanguages>(result.GetValue(lang), true),
+                OutputDirectory = result.GetValue(outDir)
+            };
 
-        // // 4. RootCommand への登録
-        // // ★重要: new Command(...) を再度作らず、上記で作った generate をそのまま入れる
-        // var root = new RootCommand("kmodel CLI") { generate };
+            var runner = host.Services.GetRequiredService<CodeGenRunner>();
+            await runner.RunAsync(g, result.GetValue(sub));
+        });
 
-        // return root;
-        throw new NotImplementedException();
+        return cmd;
     }
-
-    // private static GenerateCommand BuildGenerateCommand() {
-    //     var access = new ApiTokenAccess("domain", "token");
-    //     var http = new HttpClient();
-    //     var api = new KintoneAppMetadataApi(access, http);
-
-    //     return new GenerateCommand(
-    //         api,
-    //         new SchemaConverter(),
-    //         new CSharpCodeEmitter(
-    //             new NameConverter(),
-    //             new CSharpTypeMapper(),
-    //             new XmlCommentBuilder(),
-    //             new CSharpSubtableEmitter(new NameConverter(), new CSharpTypeMapper(), new XmlCommentBuilder()),
-    //             new CSharpHelperClassEmitter()
-    //         ),
-    //         new FileWriter()
-    //     );
-    // }
 }

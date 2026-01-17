@@ -1,0 +1,36 @@
+using System.CommandLine;
+using Microsoft.Extensions.Hosting;
+using kmodel.Options;
+using kmodel.Services;
+using Microsoft.Extensions.DependencyInjection;
+
+namespace kmodel.Commands;
+
+public static class RawCommandBuilder {
+    public static Command Build(IHost host) {
+        var cmd = new Command("raw", "Export raw metadata");
+
+        var sub = new Option<string>("--subdomain") { Required = true };
+        var app = new Option<int>("--app") { Required = true };
+        var token = new Option<string>("--token") { Required = true };
+        var outDir = new Option<string>("--out") { DefaultValueFactory = _ => "." };
+
+        cmd.Add(sub);
+        cmd.Add(app);
+        cmd.Add(token);
+        cmd.Add(outDir);
+
+        cmd.SetAction(async result => {
+            var r = new RawOptions {
+                AppId = result.GetValue(app),
+                ApiToken = result.GetValue(token),
+                OutputDirectory = result.GetValue(outDir)
+            };
+
+            var runner = host.Services.GetRequiredService<CodeGenRunner>();
+            await runner.RunRawAsync(r, result.GetValue(sub));
+        });
+
+        return cmd;
+    }
+}

@@ -10,18 +10,40 @@ using kmodel.Config;
 using kmodel.Services;
 using kmodel.Interfaces;
 using KintoneNetLibrary.CodeGen.Infrastructure.Factories;
+using System.CommandLine;
+using kmodel.Options;
+using KintoneNetLibrary.CodeGen.Domain.Enums;
+using kmodel.Commands;
 
 internal class Program {
-    static async Task Main(string[] args) {
+    static async Task<int> Main(string[] args) {
         using var host = CreateHostBuilder(args).Build();
-
         var logger = host.Services.GetRequiredService<ILogger<Program>>();
         logger.LogInformation("kmodel starting...");
 
-        var runner = host.Services.GetRequiredService<KModelApplication>();
-        await runner.RunAsync();
+        try {
+            var runner = host.Services.GetRequiredService<KModelApplication>();
+            var configLoader = host.Services.GetRequiredService<ConfigLoader>();
 
-        logger.LogInformation("kmodel finished.");
+            // ============================================================
+            // 引数なし → config.json を使って現行の RunAsync() を実行
+            // ============================================================
+            if (args.Length == 0) {
+                logger.LogInformation("kmodel starting with config.json...");
+                await runner.RunAsync();
+                logger.LogInformation("kmodel finished.");
+                return 0;
+            }
+
+            // ============================================================
+            // 引数あり → System.CommandLine でパースしてコマンド実行
+            // ============================================================
+            var rootCommand = RootCommandBuilder.Build(host);
+            return await rootCommand.Parse(args).InvokeAsync();
+
+        } finally {
+            logger.LogInformation("kmodel finished.");
+        }
     }
 
     static IHostBuilder CreateHostBuilder(string[] args) =>
