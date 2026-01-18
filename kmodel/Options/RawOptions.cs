@@ -15,7 +15,7 @@ public class RawOptions {
     /// <summary>
     /// 出力ディレクトリ
     /// </summary>
-    public string OutputDirectory { get; set; } = ".";
+    public string? OutputDirectory { get; set; }
     /// <summary>
     /// Unicode エスケープを行うか
     /// </summary>
@@ -24,4 +24,5 @@ public class RawOptions {
     /// 既存ファイルを上書きするか
     /// </summary>
     public bool OverwriteExistingFiles { get; set; }
+    public bool Pretty { get; set; } = false;
 }
