@@ -8,7 +8,7 @@ using KintoneNetLibrary.CodeGen.Domain.Enums;
 namespace kmodel.Commands;
 
 public static class InitCommandBuilder {
-    public static Command Build(IHost host) {
+    public static Command Build() {
         var cmd = new Command("init", "Generate a template kmodel.config.json");
 
         var lang = new Option<string>("--lang") {
@@ -17,8 +17,17 @@ public static class InitCommandBuilder {
         };
         cmd.Add(lang);
 
+        cmd.Description += @"
+
+### Examples
+
+```bash
+kmodel init
+kmodel init --lang TypeScript
+```";
+
         cmd.SetAction(async result => {
-            var selectedLang = result.GetValue(lang);
+            var selectedLang = result.GetValue(lang) ?? "CSharp";
             var configPath = "kmodel.config.json";
 
             // -------------------------

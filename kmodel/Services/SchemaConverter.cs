@@ -16,7 +16,7 @@ public class SchemaConverter(ILogger<SchemaConverter> logger) : ISchemaConverter
     /// GenerateOptions を言語ごとの CodeEmitterOptions に変換する
     /// </summary>
     public CodeEmitterOptions ConvertToEmitterOptions(GenerateOptions options) {
-        _logger.LogDebug(
+        this._logger.LogDebug(
             "Converting GenerateOptions to CodeEmitterOptions for AppId: {appId}, Language: {lang}",
             options.AppId,
             options.GenerateLanguage
@@ -31,7 +31,7 @@ public class SchemaConverter(ILogger<SchemaConverter> logger) : ISchemaConverter
 
         emitterOptions.EnsureDefaults(options.AppId);
 
-        _logger.LogDebug(
+        this._logger.LogDebug(
             "Conversion completed: MainClass={MainClassName}, GenerateEnums={GenerateEnums}, SplitSubTableFiles={SplitSubTableFiles}, SplitHelperFiles={SplitHelperFiles}",
             emitterOptions.MainClassName,
             emitterOptions.GenerateEnums,

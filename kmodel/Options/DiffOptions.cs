@@ -42,5 +42,8 @@ public class DiffOptions {
     /// Unicode エスケープを行うか
     /// </summary>
     public bool EscapeUnicode { get; set; } = true;
+    /// <summary>
+    /// JSONを整形して出力するか
+    /// </summary>
     public bool Pretty { get; set; } = false;
 }

@@ -6,29 +6,37 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace kmodel.Commands;
 
-public static class DiffCommandBuilder {
-    public static Command Build(IHost host) {
-        var cmd = new Command("diff", "Compare metadata and output differences");
+public class DiffCommandBuilder(IHost host) : BaseCommandBuilder(host) {
+    public Command Build() {
+        var cmd = this.CreateCommand("diff", "Compare metadata and output differences");
 
-        var sub = new Option<string>("--subdomain") { Required = true };
-        var app = new Option<int>("--app") { Required = true };
-        var token = new Option<string>("--token") { Required = true };
-        var outDir = new Option<string>("--out") { DefaultValueFactory = _ => "." };
+        var sub = OptionFactory.SubDomain();
+        var app = OptionFactory.AppId();
+        var token = OptionFactory.ApiToken();
+        var outDir = OptionFactory.OutputDirectory("Output directory for metadata diff");
+        var escape = OptionFactory.EscapeUnicode();
+        var pretty = OptionFactory.PrettyPrint();
+        var format = OptionFactory.DiffOutputFormat();
 
-        cmd.Add(sub);
-        cmd.Add(app);
-        cmd.Add(token);
-        cmd.Add(outDir);
+        this.AddOptions(cmd, sub, app, token, outDir, escape, pretty, format);
 
-        cmd.SetAction(async result => {
+        this.AddExamples(cmd,
+            "kmodel diff --subdomain example --app 123 --token ABCDEF --out ./raw",
+            "kmodel diff --subdomain example --app 123 --token ABCDEF --out ./raw --compare-with ./raw/App123-10.metadata.json"
+        );
+
+        this.SetHandler(cmd, async parse => {
             var d = new DiffOptions {
-                AppId = result.GetValue(app),
-                ApiToken = result.GetValue(token),
-                OutputDirectory = result.GetValue(outDir)
+                AppId = parse.GetValue(app),
+                ApiToken = parse.GetValue(token),
+                OutputDirectory = parse.GetValue(outDir) ?? ".",
+                EscapeUnicode = parse.GetValue(escape),
+                Pretty = parse.GetValue(pretty),
+                OutputFormat = parse.GetValue(format)
             };
 
-            var runner = host.Services.GetRequiredService<CodeGenRunner>();
-            await runner.RunDiffAsync(d, result.GetValue(sub));
+            var runner = this._host.Services.GetRequiredService<DiffRunner>();
+            await runner.RunAsync(d, parse.GetValue(sub));
         });
 
         return cmd;

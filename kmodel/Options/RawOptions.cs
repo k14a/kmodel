@@ -24,5 +24,8 @@ public class RawOptions {
     /// 既存ファイルを上書きするか
     /// </summary>
     public bool OverwriteExistingFiles { get; set; }
+    /// <summary>
+    /// JSONを整形して出力するか
+    /// </summary>
     public bool Pretty { get; set; } = false;
 }

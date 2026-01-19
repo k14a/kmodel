@@ -1,38 +1,39 @@
 using System.CommandLine;
-using Microsoft.Extensions.Hosting;
-using kmodel.Options;
 using KintoneNetLibrary.CodeGen.Domain.Enums;
+using kmodel.Options;
 using kmodel.Services;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 namespace kmodel.Commands;
 
-public static class GenerateCommandBuilder {
-    public static Command Build(IHost host) {
-        var cmd = new Command("generate", "Generate model code from Kintone app schema");
+public class GenerateCommandBuilder(IHost host) : BaseCommandBuilder(host) {
+    public Command Build() {
+        var cmd = this.CreateCommand("generate", "Generate model code from Kintone app schema");
 
-        var sub = new Option<string>("--subdomain") { Required = true };
-        var app = new Option<int>("--app") { Required = true };
-        var token = new Option<string>("--token") { Required = true };
-        var lang = new Option<string>("--lang") { DefaultValueFactory = _ => "CSharp" };
-        var outDir = new Option<string>("--out") { DefaultValueFactory = _ => "." };
+        var sub = OptionFactory.SubDomain();
+        var app = OptionFactory.AppId();
+        var token = OptionFactory.ApiToken();
+        var lang = OptionFactory.Language();
+        var outDir = OptionFactory.OutputDirectory("Output directory for generated code");
 
-        cmd.Add(sub);
-        cmd.Add(app);
-        cmd.Add(token);
-        cmd.Add(lang);
-        cmd.Add(outDir);
+        this.AddOptions(cmd, sub, app, token, lang, outDir);
 
-        cmd.SetAction(async result => {
+        this.AddExamples(cmd,
+            "kmodel generate --subdomain example --app 123 --token ABCDEF --lang CSharp --out ./Models",
+            "kmodel generate --subdomain example --app 456 --token XYZ --lang TypeScript --out ./ts"
+        );
+
+        this.SetHandler(cmd, async parse => {
             var g = new GenerateOptions {
-                AppId = result.GetValue(app),
-                ApiToken = result.GetValue(token),
-                GenerateLanguage = Enum.Parse<GenerateLanguages>(result.GetValue(lang), true),
-                OutputDirectory = result.GetValue(outDir)
+                AppId = parse.GetValue(app),
+                ApiToken = parse.GetValue(token),
+                GenerateLanguage = Enum.Parse<GenerateLanguages>(parse.GetValue(lang), true),
+                OutputDirectory = parse.GetValue(outDir) ?? "."
             };
 
-            var runner = host.Services.GetRequiredService<CodeGenRunner>();
-            await runner.RunAsync(g, result.GetValue(sub));
+            var runner = host.Services.GetRequiredService<GenerateRunner>();
+            await runner.RunAsync(g, parse.GetValue(sub));
         });
 
         return cmd;

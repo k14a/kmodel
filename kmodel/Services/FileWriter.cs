@@ -72,7 +72,14 @@ public class FileWriter(ILogger<FileWriter> logger) : IFileWriter {
         }
 
         var content = options.OutputFormat switch {
-            DiffOutputFormats.Json => System.Text.Json.JsonSerializer.Serialize(diffs, new System.Text.Json.JsonSerializerOptions { WriteIndented = true }),
+            DiffOutputFormats.Json => System.Text.Json.JsonSerializer.Serialize(
+                diffs,
+                new System.Text.Json.JsonSerializerOptions {
+                    WriteIndented = options.Pretty,
+                    Encoder = options.EscapeUnicode
+                        ? null
+                        : System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+                }),
             DiffOutputFormats.Markdown => string.Join(Environment.NewLine + Environment.NewLine, diffs.Select(d => d.ToMarkdown())),
             _ => string.Join(Environment.NewLine, diffs.Select(d => d.ToText()))
         };
