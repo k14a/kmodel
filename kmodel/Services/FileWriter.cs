@@ -105,6 +105,7 @@ public class FileWriter(ILogger<FileWriter> logger) : IFileWriter {
         FileWriterOptions fileOptions,
         int appId,
         int revision) {
+
         if (!IsValidFileName(fileName)) {
             this._logger.LogError("Invalid file name detected: {FileName}", fileName);
             return;
@@ -121,13 +122,6 @@ public class FileWriter(ILogger<FileWriter> logger) : IFileWriter {
 
         // ---- ヘッダー生成（言語非依存） ----
         var header = new StringBuilder();
-
-        if (!string.IsNullOrWhiteSpace(emitterOptions.HeaderComment)) {
-            header.AppendLine($"{emitterOptions.CommentPrefix} {emitterOptions.HeaderComment}");
-        }
-
-        header.AppendLine($"{emitterOptions.CommentPrefix} AppId: {appId}");
-        header.AppendLine($"{emitterOptions.CommentPrefix} Revision: {revision}");
 
         var finalCode = header.ToString() + code;
 
