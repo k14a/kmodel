@@ -5,7 +5,6 @@ using KintoneNetLibrary.Domain.Enums;
 
 namespace kmodel.Extensions;
 
-// コメントは日本語で作成してください
 /// <summary>
 /// DiffResult 拡張メソッド
 /// </summary>
@@ -22,11 +21,11 @@ public static class KintoneMetadataDiffExtensions {
         sb.AppendLine($"[{diff.DiffType}] {diff.GetFieldName()}");
 
         if (diff.Before != null) {
-            sb.AppendLine($"  Before: {diff.Before.Type} / {diff.Before.GetLabelWithCode()}");
+            sb.AppendLine($"  Before: {diff.Before.FieldType} / {diff.Before.GetLabelWithCode()}");
         }
 
         if (diff.After != null) {
-            sb.AppendLine($"  After : {diff.After.Type} / {diff.After.GetLabelWithCode()}");
+            sb.AppendLine($"  After : {diff.After.FieldType} / {diff.After.GetLabelWithCode()}");
         }
 
         if (diff.ChangedProperties.Count > 0) {
@@ -48,8 +47,8 @@ public static class KintoneMetadataDiffExtensions {
         return sb.ToString();
     }
     private static string GetLabelWithCode(this KintoneFieldMetadata field) {
-        var label = field.Label ?? "(no label)";
-        return $"{label} ({field.Code})";
+        var label = field.FieldLabel ?? "(no label)";
+        return $"{label} ({field.FieldCode})";
     }
 
     /// <summary>
@@ -108,13 +107,13 @@ public static class KintoneMetadataDiffExtensions {
     private static void AppendBefore(StringBuilder sb, KintoneMetadataDiff diff) {
         if (diff.Before == null) { return; }
 
-        sb.AppendLine($"- **Before**: `{diff.Before.Type}` / {diff.Before.GetLabelWithCode()}");
+        sb.AppendLine($"- **Before**: `{diff.Before.FieldType}` / {diff.Before.GetLabelWithCode()}");
     }
 
     private static void AppendAfter(StringBuilder sb, KintoneMetadataDiff diff) {
         if (diff.After == null) { return; }
 
-        sb.AppendLine($"- **After**: `{diff.After.Type}` / {diff.After.GetLabelWithCode()}");
+        sb.AppendLine($"- **After**: `{diff.After.FieldType}` / {diff.After.GetLabelWithCode()}");
     }
 
     private static void AppendChangedProperties(StringBuilder sb, KintoneMetadataDiff diff) {
@@ -136,5 +135,5 @@ public static class KintoneMetadataDiffExtensions {
     /// </summary>
     /// <param name="diff"></param>
     /// <returns></returns>
-    private static string GetFieldName(this KintoneMetadataDiff diff) => diff.After?.Code ?? diff.Before?.Code ?? "(unknown)";
+    private static string GetFieldName(this KintoneMetadataDiff diff) => diff.After?.FieldCode ?? diff.Before?.FieldCode ?? "(unknown)";
 }
