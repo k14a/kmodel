@@ -49,6 +49,7 @@ TestResults/
 *.coverage
 *.coveragexml
 *.trx
+generated/
 
 # アップロード禁止な個人設定
 TestConfig.json

@@ -12,11 +12,19 @@ using kmodel.Services;
 using kmodel.Interfaces;
 using kmodel.Commands;
 
+/// <summary>
+/// kmodel のエントリーポイント。コマンドライン引数を処理し、適切な Runner を呼び出す。
+/// </summary>
 internal class Program {
+    /// <summary>
+    /// 引数なしで起動された場合は config.json を読み込んで RunAsync() を実行。
+    /// </summary>
+    /// <param name="args"></param>
+    /// <returns></returns>
     static async Task<int> Main(string[] args) {
         using var host = CreateHostBuilder(args).Build();
         var logger = host.Services.GetRequiredService<ILogger<Program>>();
-        logger.LogInformation("kmodel starting...");
+        logger.LogDebug("kmodel starting...");
 
         try {
             var runner = host.Services.GetRequiredService<KModelApplication>();
@@ -26,9 +34,9 @@ internal class Program {
             // 引数なし → config.json を使って現行の RunAsync() を実行
             // ============================================================
             if (args.Length == 0) {
-                logger.LogInformation("kmodel starting with config.json...");
+                logger.LogDebug("kmodel starting with config.json...");
                 await runner.RunAsync();
-                logger.LogInformation("kmodel finished.");
+                logger.LogDebug("kmodel finished.");
                 return 0;
             }
 
@@ -39,10 +47,15 @@ internal class Program {
             return await rootCommand.Parse(args).InvokeAsync();
 
         } finally {
-            logger.LogInformation("kmodel finished.");
+            logger.LogDebug("kmodel finished.");
         }
     }
 
+    /// <summary>
+    /// ホストビルダーの作成。依存関係の登録やロギングの設定を行う。
+    /// </summary>
+    /// <param name="args"></param>
+    /// <returns></returns>
     static IHostBuilder CreateHostBuilder(string[] args) =>
         Host.CreateDefaultBuilder(args)
             .ConfigureLogging(logging => {
@@ -89,8 +102,7 @@ internal class Program {
                 services.AddSingleton<ITypeMapperFactory, TypeMapperFactory>();
 
                 // KintoneNetLibrary 関連サービス
+                services.AddHttpClient();
                 services.AddTransient<IKintoneAppMetadataApi, KintoneAppMetadataApi>();
-                services.AddHttpClient<IKintoneAppMetadataApi, KintoneAppMetadataApi>();
-
             });
 }

@@ -7,14 +7,22 @@ using Microsoft.Extensions.Logging;
 namespace kmodel.Services;
 
 /// <summary>
-/// GenerateOptions を CodeEmitterOptions に変換するコンバータ
+/// GenerateOptions を言語ごとの CodeEmitterOptions に変換するクラス。GenerateRunner で使用され、ユーザーが指定したオプションをコード生成のためのオプションに変換します。
+/// 現在は C# と Python に対応していますが、将来的には他の言語にも対応できるように設計されています。変換の際には、GenerateOptions の共通オプションを CodeEmitterOptions の共通プロパティにマッピングし、言語固有のオプションも適切にマッピングします。
+/// 変換後の CodeEmitterOptions は、コード生成の際に使用されます。例えば、C# の場合は CSharpEmitterOptions、Python の場合は PythonEmitterOptions になります。変換の過程で、必要に応じてデフォルト値を設定したり、オプションの整合性をチェックしたりすることもできます。
 /// </summary>
+/// <param name="logger">ロガー</param>
 public class SchemaConverter(ILogger<SchemaConverter> logger) : ISchemaConverter {
     private readonly ILogger<SchemaConverter> _logger = logger;
 
     /// <summary>
-    /// GenerateOptions を言語ごとの CodeEmitterOptions に変換する
+    /// GenerateOptions を CodeEmitterOptions に変換する。options.GenerateLanguage に基づいて、適切な CodeEmitterOptions のサブクラスに変換します。サポートされていない言語が指定された場合は NotSupportedException をスローします。
+    /// 変換の際には、共通のオプションを CodeEmitterOptions の共通プロパティにマッピングし、言語固有のオプションも適切にマッピングします。変換後の CodeEmitterOptions は、コード生成の際に使用されます。
+    /// 例えば、C# の場合は CSharpEmitterOptions、Python の場合は PythonEmitterOptions になります。変換の過程で、必要に応じてデフォルト値を設定したり、オプションの整合性をチェックしたりすることもできます。
     /// </summary>
+    /// <param name="options">変換元の GenerateOptions</param>
+    /// <returns>変換後の CodeEmitterOptions</returns>
+    /// <exception cref="NotSupportedException">サポートされていない言語が指定された場合にスローされます</exception>
     public CodeEmitterOptions ConvertToEmitterOptions(GenerateOptions options) {
         this._logger.LogDebug(
             "Converting GenerateOptions to CodeEmitterOptions for AppId: {appId}, Language: {lang}",
@@ -43,8 +51,10 @@ public class SchemaConverter(ILogger<SchemaConverter> logger) : ISchemaConverter
     }
 
     /// <summary>
-    /// C# 用の CodeEmitterOptions へ変換
+    /// C# 用の CodeEmitterOptions へ変換する。GenerateOptions のオプションを CSharpEmitterOptions のプロパティにマッピングします。共通のオプションは CodeEmitterOptions の共通プロパティにマッピングされ、C# 固有のオプションも適切にマッピングされます。
     /// </summary>
+    /// <param name="options">変換元の GenerateOptions</param>
+    /// <returns>変換後の CSharpEmitterOptions</returns>
     private static CSharpEmitterOptions ConvertToCSharpOptions(GenerateOptions options) {
         var cs = new CSharpEmitterOptions {
             // 共通
@@ -66,8 +76,10 @@ public class SchemaConverter(ILogger<SchemaConverter> logger) : ISchemaConverter
     }
 
     /// <summary>
-    /// Python 用の CodeEmitterOptions へ変換
+    /// Python 用の CodeEmitterOptions へ変換する。GenerateOptions のオプションを PythonEmitterOptions のプロパティにマッピングします。共通のオプションは CodeEmitterOptions の共通プロパティにマッピングされ、Python 固有のオプションも適切にマッピングされます。
     /// </summary>
+    /// <param name="options">変換元の GenerateOptions</param>
+    /// <returns>変換後の PythonEmitterOptions</returns>
     private static PythonEmitterOptions ConvertToPythonOptions(GenerateOptions options) {
         var py = new PythonEmitterOptions {
             // 共通

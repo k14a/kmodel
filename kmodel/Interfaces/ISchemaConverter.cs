@@ -12,7 +12,7 @@ public interface ISchemaConverter {
     /// <summary>
     /// GenerateOptions を CodeEmitterOptions に変換する
     /// </summary>
-    /// <param name="options"></param>
-    /// <returns></returns>
+    /// <param name="options">変換元の GenerateOptions インスタンス</param>
+    /// <returns>変換後の CodeEmitterOptions インスタンス</returns>
     CodeEmitterOptions ConvertToEmitterOptions(GenerateOptions options);
 }

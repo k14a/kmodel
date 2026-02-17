@@ -13,9 +13,9 @@ public class KModelApplication(
     RawRunner rawRunner,
     DiffRunner diffRunner,
     ILogger<KModelApplication> logger) {
+
     private readonly ILogger<KModelApplication> _logger = logger;
     private readonly ConfigLoader _configLoader = configLoader;
-
     private readonly GenerateRunner _generateRunner = generateRunner;
     private readonly RawRunner _rawRunner = rawRunner;
     private readonly DiffRunner _diffRunner = diffRunner;
@@ -25,6 +25,10 @@ public class KModelApplication(
     /// </summary>
     public KModelConfig Config { get; private set; } = default!;
 
+    /// <summary>
+    /// config.json を読み込んで、Generate/Diff/Raw の各処理を実行する。
+    /// </summary>
+    /// <returns>非同期操作のタスク</returns>
     public async Task RunAsync() {
         try {
             StaticLogMessages.MethodStart(this._logger);
@@ -42,12 +46,19 @@ public class KModelApplication(
         }
     }
 
+    /// <summary>
+    /// config.json を読み込んで Config プロパティにセットする。
+    /// </summary>
     private void LoadConfig() {
         var baseDirectory = AppContext.BaseDirectory;
         var path = Path.Combine(baseDirectory, "kmodel.config.json");
         this.Config = this._configLoader.Load(path);
     }
 
+    /// <summary>
+    /// Config.Generates に基づいてコード生成処理を実行する。
+    /// </summary>
+    /// <returns>非同期操作のタスク</returns>
     private async Task ProcessGeneratesAsync() {
         foreach (var gen in this.Config.Generates) {
             StaticLogMessages.MethodInfo(this._logger, message: $"Processing Generate AppId: {gen.AppId}");
@@ -55,6 +66,10 @@ public class KModelApplication(
         }
     }
 
+    /// <summary>
+    /// Config.Raws に基づいてRAW出力処理を実行する。
+    /// </summary>
+    /// <returns>非同期操作のタスク</returns>
     private async Task ProcessRawsAsync() {
         foreach (var raw in this.Config.Raws) {
             StaticLogMessages.MethodInfo(this._logger, message: $"Processing Raw AppId: {raw.AppId}");
@@ -62,6 +77,10 @@ public class KModelApplication(
         }
     }
 
+    /// <summary>
+    /// Config.Diffs に基づいて差分出力処理を実行する。
+    /// </summary>
+    /// <returns>非同期操作のタスク</returns>
     private async Task ProcessDiffsAsync() {
         foreach (var diff in this.Config.Diffs) {
             StaticLogMessages.MethodInfo(this._logger, message: $"Processing Diff AppId: {diff.AppId}");

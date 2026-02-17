@@ -14,10 +14,10 @@ public class ConfigLoader(ILogger<ConfigLoader> logger) {
     /// <summary>
     /// 設定ファイルを読み込む
     /// </summary>
-    /// <param name="path"></param>
-    /// <returns></returns>
-    /// <exception cref="FileNotFoundException"></exception>
-    /// <exception cref="InvalidOperationException"></exception>
+    /// <param name="path">設定ファイルのパス</param>
+    /// <returns>読み込まれた KModelConfig インスタンス</returns>
+    /// <exception cref="FileNotFoundException">設定ファイルが見つからない場合にスローされます。</exception>
+    /// <exception cref="InvalidOperationException">設定ファイルのデシリアライズに失敗した場合にスローされます。</exception>
     public KModelConfig Load(string path) {
         this._logger.LogInformation("Loading config file: {Path}", path);
 
