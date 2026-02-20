@@ -11,6 +11,8 @@ using kmodel.Config;
 using kmodel.Services;
 using kmodel.Interfaces;
 using kmodel.Commands;
+using KintoneNetLibrary.Domain.Interfaces;
+using KintoneNetLibrary.Infrastructure.Services;
 
 /// <summary>
 /// kmodel のエントリーポイント。コマンドライン引数を処理し、適切な Runner を呼び出す。
@@ -85,6 +87,8 @@ internal class Program {
                 services.AddTransient<IXmlCommentBuilder, CSharpXmlCommentBuilder>();
                 services.AddTransient<ISubTableEmitter, CSharpSubTableEmitter>();
                 services.AddTransient<IHelperClassEmitter, CSharpHelperClassEmitter>();
+                services.AddTransient<IMetadataConverter, MetadataConverter>();
+                services.AddTransient<IFieldParser, FieldParser>();
 
                 // Codeエミッターファクトリ
                 services.AddTransient<ICodeEmitter, CSharpCodeEmitter>();

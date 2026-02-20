@@ -19,29 +19,67 @@ public class GenerateCommandBuilder(IHost host) : BaseCommandBuilder(host) {
     public Command Build() {
         var cmd = this.CreateCommand("generate", "Generate model code from Kintone app schema");
 
-        var sub = OptionFactory.SubDomain();
-        var app = OptionFactory.AppId();
-        var token = OptionFactory.ApiToken();
-        var lang = OptionFactory.Language();
-        var outDir = OptionFactory.OutputDirectory("Output directory for generated code");
+        var subDomainOption = OptionFactory.SubDomain();
+        var appIdOption = OptionFactory.AppId();
+        var apiTokenOption = OptionFactory.ApiToken();
+        var languageOption = OptionFactory.Language();
+        var outputDirectoryOption = OptionFactory.OutputDirectory("Output directory for generated code");
+        var fieldsFileOption = OptionFactory.FieldsFile();
+        var templateOption = OptionFactory.ExportNameTableTemplate();
+        var nameTableOption = OptionFactory.NameTable();
 
-        this.AddOptions(cmd, sub, app, token, lang, outDir);
+        this.AddOptions(
+            cmd,
+            subDomainOption,
+            appIdOption,
+            apiTokenOption,
+            languageOption,
+            outputDirectoryOption,
+            fieldsFileOption,
+            templateOption,
+            nameTableOption);
 
         this.AddExamples(cmd,
             "kmodel generate --sub-domain example --app-id 123 --api-token ABCDEF --lang CSharp --out-dir ./Models",
-            "kmodel generate --sub-domain example --app-id 456 --api-token XYZ --lang TypeScript --out-dir ./ts"
+            "kmodel generate --sub-domain example --app-id 456 --api-token XYZ --lang TypeScript --out-dir ./ts",
+            "kmodel generate --fields ./fields.json --app-id 123 --lang CSharp --out-dir ./Models",
+            $"# Export name table template only (no model code will be generated){Environment.NewLine}kmodel generate --sub-domain example --app-id 789 --api-token FOOBAR --export-name-table-template ./template.json",
+            $"# Export name table template only (no model code will be generated){Environment.NewLine}kmodel generate --fields ./fields.json --app-id 456 --export-name-table-template ./template.json"
         );
 
         this.SetHandler(cmd, async parse => {
+            var templateFile = parse.GetValue(templateOption);
+            var fieldsFile = parse.GetValue(fieldsFileOption);
+            var nameTableFile = parse.GetValue(nameTableOption);
+            var subDomain = parse.GetValue(subDomainOption);
+            var apiToken = parse.GetValue(apiTokenOption);
+
+            // --- 排他チェック ---
+            if (!string.IsNullOrEmpty(fieldsFile)) {
+                // fields.json モード
+                if (subDomain is not null || apiToken is not null) {
+                    throw new ArgumentException("--fields cannot be used with --sub-domain or --api-token");
+                }
+            } else {
+                // API モード
+                if (subDomain is null || apiToken is null) {
+                    throw new ArgumentException("--sub-domain and --api-token are required unless --fields is specified");
+                }
+            }
+
+            // --- GenerateOptions の構築 ---
             var g = new GenerateOptions {
-                AppId = parse.GetValue(app),
-                ApiToken = parse.GetValue(token),
-                GenerateLanguage = Enum.Parse<GenerateLanguages>(parse.GetValue(lang), true),
-                OutputDirectory = parse.GetValue(outDir) ?? "."
+                AppId = parse.GetValue(appIdOption),
+                ApiToken = apiToken ?? string.Empty,
+                FieldsFile = fieldsFile ?? string.Empty,
+                GenerateLanguage = Enum.Parse<GenerateLanguages>(parse.GetValue(languageOption), true),
+                OutputDirectory = parse.GetValue(outputDirectoryOption) ?? ".",
+                ExportNameTableTemplate = templateFile ?? string.Empty,
+                NameTable = nameTableFile ?? string.Empty,
             };
 
             var runner = host.Services.GetRequiredService<GenerateRunner>();
-            await runner.RunAsync(g, parse.GetValue(sub));
+            await runner.RunAsync(g, subDomain);
         });
 
         return cmd;

@@ -48,7 +48,7 @@ public class GenerateOptions {
     /// 生成ファイルの先頭に出力するコメント
     /// </summary>
     public string? HeaderComment { get; set; }
-    #endregion
+    #endregion // <<for CodeEmitterOptions>>
 
     #region <<for CSharpEmitterOptions>>
     /// <summary>
@@ -75,7 +75,7 @@ public class GenerateOptions {
     /// #nullable enable を付与するか
     /// </summary>
     public bool NullableEnabled { get; set; } = true;
-    #endregion
+    #endregion // <<for CSharpEmitterOptions>>
 
     #region <<for PythonEmitterOptions>>
     /// <summary>
@@ -87,7 +87,7 @@ public class GenerateOptions {
     /// type hint を付与するか
     /// </summary>
     public bool UseTypeHint { get; set; } = true;
-    #endregion
+    #endregion // <<for PythonEmitterOptions>>
 
     #region <<for FileWriterOptions>>
     /// <summary>
@@ -99,5 +99,20 @@ public class GenerateOptions {
     /// 既存ファイルを上書きするか
     /// </summary>
     public bool OverwriteExistingFiles { get; set; }
-    #endregion
+    #endregion // <<for FileWriterOptions>>
+
+    /// <summary>
+    /// フィールド定義ファイルのパス。これが指定された場合、Kintone API からスキーマを取得せず、代わりにこのファイルからフィールド定義を読み取ります。ファイルは JSON 形式で、Kintone API のフィールド定義と同じ構造を持つ必要があります。このオプションは、API アクセスが制限されている環境や、既存のフィールド定義を再利用したい場合に便利です。
+    /// </summary>
+    public string FieldsFile { get; set; } = string.Empty;
+
+    /// <summary>
+    /// エクスポート名テーブルのテンプレートファイルのパス。これが指定された場合、コード生成時にフィールドコードとフィールド名の対応表をこのテンプレートファイルに基づいて生成します。ファイルは JSON 形式で、フィールドコードをキー、フィールド名を値とするオブジェクトの構造を持つ必要があります。このオプションは、生成されるコードでフィールドコードを人間が理解しやすい名前にマッピングしたい場合に便利です。
+    /// </summary>
+    public string ExportNameTableTemplate { get; set; } = string.Empty;
+
+    /// <summary>
+    /// エクスポート名テーブルの出力ファイルのパス。これが指定された場合、コード生成時にフィールドコードとフィールド名の対応表をこのファイルに出力します。ファイルは JSON 形式で、フィールドコードをキー、フィールド名を値とするオブジェクトの構造になります。このオプションは、生成されるコードでフィールドコードを人間が理解しやすい名前にマッピングしたい場合に便利です。
+    /// </summary>
+    public string NameTable { get; set; } = string.Empty;
 }

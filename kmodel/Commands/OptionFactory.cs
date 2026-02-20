@@ -13,8 +13,8 @@ public static class OptionFactory {
     /// <returns>構築された Option インスタンス</returns>
     public static Option<string> SubDomain() =>
         new("--sub-domain") {
-            Required = true,
-            Description = "Kintone subdomain (e.g., 'example' for example.cybozu.com)"
+            Required = false,
+            Description = "Kintone subdomain (required unless --fields is used)"
         };
 
     /// <summary>
@@ -33,8 +33,8 @@ public static class OptionFactory {
     /// <returns>構築された Option インスタンス</returns>
     public static Option<string> ApiToken() =>
         new("--api-token") {
-            Required = true,
-            Description = "Kintone API Token"
+            Required = false,
+            Description = "Kintone API Token (required unless --fields is used)"
         };
 
     /// <summary>
@@ -102,5 +102,38 @@ public static class OptionFactory {
             Required = false,
             DefaultValueFactory = _ => null,
             Description = "Path to previous metadata JSON file for comparison (optional)"
+        };
+
+    /// <summary>
+    /// フィールド定義ファイルを指定するオプションを作成する静的メソッド。ユーザーが kbackup からエクスポートされたフィールド定義の JSON ファイルを指定できるようにするためのオプションで、例えば "./fields.json" を入力すると、そのファイルからフィールド定義を読み込みます。このオプションは必須ではなく、ユーザーが指定しない場合はフィールド定義が読み込まれません。
+    /// </summary>
+    /// <returns>構築された Option インスタンス</returns>
+    public static Option<string?> FieldsFile() =>
+        new("--fields") {
+            Required = false,
+            DefaultValueFactory = _ => null,
+            Description = "Path to fields JSON file from kbackup (optional)"
+        };
+
+    /// <summary>
+    /// 名前テーブルテンプレートのエクスポート先を指定するオプションを作成する静的メソッド。ユーザーが名前テーブルテンプレートの出力先ファイルパスを指定できるようにするためのオプションで、例えば "./name_table_template.json" を入力すると、そのファイルに名前テーブルテンプレートがエクスポートされます。このオプションは必須ではなく、ユーザーが指定しない場合は名前テーブルテンプレートはエクスポートされません。
+    /// </summary>
+    /// <returns>構築された Option インスタンス</returns>
+    public static Option<string?> ExportNameTableTemplate() =>
+        new("--export-name-table-template") {
+            Required = false,
+            DefaultValueFactory = _ => null,
+            Description = "Export name table template (JSON) and exit. No model code will be generated."
+        };
+
+    /// <summary>
+    /// 名前テーブルのエクスポート先を指定するオプションを作成する静的メソッド。ユーザーが名前テーブルの出力先ファイルパスを指定できるようにするためのオプションで、例えば "./name_table.json" を入力すると、そのファイルに名前テーブルがエクスポートされます。このオプションは必須ではなく、ユーザーが指定しない場合は名前テーブルはエクスポートされません。
+    /// </summary>
+    /// <returns>構築された Option インスタンス</returns>
+    public static Option<string?> NameTable() =>
+        new("--name-table") {
+            Required = false,
+            DefaultValueFactory = _ => null,
+            Description = "Path to name table JSON file for property name conversion (used when regenerating models)"
         };
 }
