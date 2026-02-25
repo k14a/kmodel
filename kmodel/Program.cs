@@ -96,9 +96,16 @@ internal class Program {
                 services.AddSingleton<ICodeEmitterFactory, CodeEmitterFactory>();
 
                 // NameConverterファクトリ
+                services.AddTransient<IMetadataConverter, MetadataConverter>();
                 services.AddTransient<INameConverter, CSharpNameConverter>();
                 services.AddTransient<INameConverter, PythonNameConverter>();
-                services.AddSingleton<INameConverterFactory, NameConverterFactory>();
+                services.AddTransient<INameConverterFactory, NameConverterFactory>();
+                services.AddTransient<INameTableApplicable, CSharpNameConverter>();
+                services.AddTransient<INameTableApplicable, PythonNameConverter>();
+                services.AddTransient<IFieldParser, FieldParser>();
+                services.AddTransient<INameTableGenerator, NameTableGenerator>();
+                services.AddTransient<CSharpNameConverter>();
+                services.AddTransient<PythonNameConverter>();
 
                 // TypeMapperファクトリ
                 services.AddTransient<ITypeMapper, CSharpTypeMapper>();

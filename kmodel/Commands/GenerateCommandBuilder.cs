@@ -27,6 +27,7 @@ public class GenerateCommandBuilder(IHost host) : BaseCommandBuilder(host) {
         var fieldsFileOption = OptionFactory.FieldsFile();
         var templateOption = OptionFactory.ExportNameTableTemplate();
         var nameTableOption = OptionFactory.NameTable();
+        var classNameOption = OptionFactory.ClassName();
 
         this.AddOptions(
             cmd,
@@ -37,7 +38,8 @@ public class GenerateCommandBuilder(IHost host) : BaseCommandBuilder(host) {
             outputDirectoryOption,
             fieldsFileOption,
             templateOption,
-            nameTableOption);
+            nameTableOption,
+            classNameOption);
 
         this.AddExamples(cmd,
             "kmodel generate --sub-domain example --app-id 123 --api-token ABCDEF --lang CSharp --out-dir ./Models",
@@ -53,6 +55,7 @@ public class GenerateCommandBuilder(IHost host) : BaseCommandBuilder(host) {
             var nameTableFile = parse.GetValue(nameTableOption);
             var subDomain = parse.GetValue(subDomainOption);
             var apiToken = parse.GetValue(apiTokenOption);
+            var className = parse.GetValue(classNameOption);
 
             // --- 排他チェック ---
             if (!string.IsNullOrEmpty(fieldsFile)) {
@@ -76,6 +79,7 @@ public class GenerateCommandBuilder(IHost host) : BaseCommandBuilder(host) {
                 OutputDirectory = parse.GetValue(outputDirectoryOption) ?? ".",
                 ExportNameTableTemplate = templateFile ?? string.Empty,
                 NameTable = nameTableFile ?? string.Empty,
+                ClassName = className,
             };
 
             var runner = host.Services.GetRequiredService<GenerateRunner>();

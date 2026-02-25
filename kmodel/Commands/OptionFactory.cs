@@ -38,6 +38,16 @@ public static class OptionFactory {
         };
 
     /// <summary>
+    /// クラス名を指定するオプションを作成する静的メソッド。ユーザーが生成されるモデルのクラス名を入力できるようにするためのオプションで、例えば "KintoneRegularKobot" を入力すると、生成されるモデルのクラス名が "KintoneRegularKobot" になります。このオプションは必須ではなく、ユーザーが指定しない場合はデフォルトのクラス名が使用されます。
+    /// </summary>
+    /// <returns>構築された Option インスタンス</returns>
+    public static Option<string> ClassName() =>
+        new("--class-name") {
+            Required = false,
+            Description = "Class name for the generated model (optional)"
+        };
+
+    /// <summary>
     /// 出力ディレクトリを指定するオプションを作成する静的メソッド。ユーザーが出力ファイルを保存するディレクトリのパスを入力できるようにするためのオプションで、例えば "./output" を入力すると、出力ファイルが "output" ディレクトリに保存されることを想定しています。このオプションは必須ではなく、ユーザーが指定しない場合はデフォルトでカレントディレクトリが使用されます。
     /// </summary>
     /// <param name="description">オプションの説明</param>

@@ -10,6 +10,9 @@ using KintoneNetLibrary.CodeGen.Domain.Schemas;
 using System.Text.Json;
 using KintoneNetLibrary.Domain.Common;
 using KintoneNetLibrary.CodeGen.Domain.Models;
+using System.Text.Encodings.Web;
+using System.Text;
+using KintoneNetLibrary.Domain.Enums;
 
 namespace kmodel.Services;
 
@@ -111,11 +114,89 @@ public class GenerateRunner(
         StaticLogMessages.MethodInfo(this._logger, message: $"Generating name table template: {options.ExportNameTableTemplate}");
 
         var nameTable = this._nameTableGenerator.Generate(schema);
-        var json = JsonSerializer.Serialize(nameTable, DefaultJsonOptions.Default);
+        var nameConverter = this._nameConverterFactory.Create(options.GenerateLanguage, null);
+        foreach (var (fieldCode, mapping) in nameTable) {
+            mapping.Property ??= nameConverter.ToPropertyName(mapping.Label, fieldCode, true);
+        }
 
-        await File.WriteAllTextAsync(options.ExportNameTableTemplate, json);
+        var ext = Path.GetExtension(options.ExportNameTableTemplate).ToLowerInvariant();
+
+        switch (ext) {
+            case ".json":
+                await this.ExportAsJsonAsync(nameTable, options.ExportNameTableTemplate);
+                break;
+            case ".csv":
+                this.ExportAsDelimited(nameTable, options.ExportNameTableTemplate, ',');
+                break;
+            case ".tsv":
+                this.ExportAsDelimited(nameTable, options.ExportNameTableTemplate, '\t');
+                break;
+            default:
+                StaticLogMessages.MethodInfo(this._logger, message: $"Unsupported export format: {ext}. Only .json is supported.");
+                return;
+        }
 
         StaticLogMessages.MethodInfo(this._logger, message: $"Name table template generated: {options.ExportNameTableTemplate}");
+    }
+
+    /// <summary>
+    /// 名前テーブルを JSON ファイルに出力する。path で出力先のファイルパスを指定する。
+    /// </summary>
+    /// <param name="table">名前テーブル</param>
+    /// <param name="path">出力先のファイルパス</param>
+    /// <returns>非同期タスク</returns>
+    private async Task ExportAsJsonAsync(NameTable table, string path) {
+        var jsonOptions = new JsonSerializerOptions {
+            WriteIndented = true,
+            Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+        };
+        var json = JsonSerializer.Serialize(table, jsonOptions);
+
+        await File.WriteAllTextAsync(path, json);
+
+    }
+
+    /// <summary>
+    /// 名前テーブルを区切り文字形式（CSV/TSV）でファイルに出力する。path で出力先のファイルパスを指定し、delimiter で区切り文字を指定する。delimiter は ','（カンマ）または '\t'（タブ）を想定している。
+    /// </summary>
+    /// <param name="table">名前テーブル</param>
+    /// <param name="path">出力先のファイルパス</param>
+    /// <param name="delimiter">区切り文字</param>
+    private void ExportAsDelimited(NameTable table, string path, char delimiter) {
+        using var writer = new StreamWriter(path, false, new UTF8Encoding(false));
+        writer.WriteLine($"FieldCode{delimiter}Label{delimiter}FieldType{delimiter}SubTable{delimiter}Property");
+        foreach (var (fieldCode, mapping) in table) {
+            writer.WriteLine(
+                $"{Escape(fieldCode, delimiter)}{delimiter}" +
+                $"{Escape(mapping.Label, delimiter)}{delimiter}" +
+                $"{mapping.FieldType}{delimiter}" +
+                $"{mapping.SubTable ?? string.Empty}{delimiter}" +
+                $"{mapping.Property ?? string.Empty}"
+            );
+        }
+    }
+
+    /// <summary>
+    /// CSV/TSV 形式の値をエスケープする。値に区切り文字、改行、またはダブルクォートが含まれている場合は、値全体をダブルクォートで囲み、ダブルクォート自体は2つのダブルクォートに置換する。そうでない場合は値をそのまま返す。
+    /// </summary>
+    /// <param name="value">エスケープする値</param>
+    /// <param name="delimiter">区切り文字</param>
+    /// <returns>エスケープされた値</returns>
+    private static string Escape(string? value, char delimiter) {
+        if (string.IsNullOrEmpty(value)) {
+            return string.Empty;
+        }
+
+        var escaped = value.Replace("\"", "\"\"");
+
+        if (escaped.Contains(delimiter) ||
+            escaped.Contains('\r') ||
+            escaped.Contains('\n') ||
+            escaped.Contains('"')) {
+            return $"\"{escaped}\"";
+        }
+
+        return escaped;
     }
 
     /// <summary>
@@ -128,14 +209,105 @@ public class GenerateRunner(
             return null;
         }
 
-        StaticLogMessages.MethodInfo(this._logger, message: $"Loading name table: {options.NameTable}");
+        var path = options.NameTable;
+        var ext = Path.GetExtension(path).ToLowerInvariant();
 
-        var json = File.ReadAllText(options.NameTable);
-        var table = JsonSerializer.Deserialize<NameTable>(json, DefaultJsonOptions.Default);
+        StaticLogMessages.MethodInfo(this._logger, null, $"Loading name table: {path}");
 
-        StaticLogMessages.MethodInfo(this._logger, message: $"Name table loaded: {options.NameTable}");
+        NameTable table = ext switch {
+            ".json" => this.LoadNameTableFromJson(path),
+            ".csv" => this.LoadNameTableFromDelimited(path, ','),
+            ".tsv" => this.LoadNameTableFromDelimited(path, '\t'),
+            _ => throw new InvalidOperationException($"Unsupported name-table extension: {ext}")
+        };
+
+        StaticLogMessages.MethodInfo(this._logger, null, $"Name table loaded: {path}");
 
         return table;
+    }
+
+    /// <summary>
+    /// JSON ファイルから名前テーブルを読み込む。path で読み込むファイルのパスを指定する。ファイルが存在しない場合や JSON の形式が正しくない場合は例外が発生する。
+    /// </summary>
+    /// <param name="path">読み込む JSON ファイルのパス</param>
+    /// <returns>NameTable インスタンス</returns>
+    private NameTable LoadNameTableFromJson(string path) {
+        var json = File.ReadAllText(path);
+        return JsonSerializer.Deserialize<NameTable>(json, DefaultJsonOptions.Default) ?? [];
+    }
+
+    /// <summary>
+    /// 区切り文字形式（CSV/TSV）ファイルから名前テーブルを読み込む。path で読み込むファイルのパスを指定し、delimiter で区切り文字を指定する。delimiter は ','（カンマ）または '\t'（タブ）を想定している。ファイルが存在しない場合や形式が正しくない場合は例外が発生する。
+    /// </summary>
+    /// <param name="path">読み込むファイルのパス</param>
+    /// <param name="delimiter">区切り文字</param>
+    /// <returns>NameTable インスタンス</returns>
+    private NameTable LoadNameTableFromDelimited(string path, char delimiter) {
+        var table = new NameTable();
+
+        using var reader = new StreamReader(path, new UTF8Encoding(false));
+
+        // 1行目はヘッダー
+        var header = reader.ReadLine();
+        if (header == null) {
+            return table;
+        }
+
+        string? line;
+        while ((line = reader.ReadLine()) != null) {
+            var cols = ParseDelimitedLine(line, delimiter);
+            if (cols.Length < 5) { continue; }
+
+            var fieldCode = cols[0];
+            var label = cols[1];
+            var type = cols[2];
+            var subTable = string.IsNullOrWhiteSpace(cols[3]) ? null : cols[3];
+            var property = cols[4];
+
+            var fieldType = Enum.TryParse<KintoneFieldType>(type, out var ft) ? ft : KintoneFieldType.Unknown;
+            table.Set(fieldCode, new FieldNameMapping {
+                Label = label,
+                FieldType = fieldType,
+                SubTable = subTable,
+                Property = string.IsNullOrWhiteSpace(property) ? null : property
+            });
+        }
+
+        return table;
+    }
+
+    /// <summary>
+    /// スキーマから名前テーブルのテンプレートを生成して JSON ファイルに出力する。options.ExportNameTableTemplate で出力先のファイルパスを指定する。
+    /// 生成される名前テーブルのテンプレートは、フィールドコード、フィールドのラベル、フィールドタイプ、サブテーブルの有無を含む構造になっており、コード生成時にプロパティ名を指定するためのテンプレートとして使用されることを想定しています。 
+    /// </summary>
+    /// <param name="line">解析する行の文字列</param>
+    /// <param name="delimiter">区切り文字</param>
+    /// <returns>解析された列の配列</returns>
+    private static string[] ParseDelimitedLine(string line, char delimiter) {
+        var result = new List<string>();
+        var sb = new StringBuilder();
+        bool inQuotes = false;
+
+        for (int i = 0; i < line.Length; i++) {
+            var c = line[i];
+
+            if (c == '"') {
+                if (inQuotes && i + 1 < line.Length && line[i + 1] == '"') {
+                    sb.Append('"');
+                    i++;
+                } else {
+                    inQuotes = !inQuotes;
+                }
+            } else if (c == delimiter && !inQuotes) {
+                result.Add(sb.ToString());
+                sb.Clear();
+            } else {
+                sb.Append(c);
+            }
+        }
+
+        result.Add(sb.ToString());
+        return result.ToArray();
     }
 
     /// <summary>
