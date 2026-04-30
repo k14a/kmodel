@@ -88,7 +88,7 @@ internal class Program {
                 services.AddTransient<ISubTableEmitter, CSharpSubTableEmitter>();
                 services.AddTransient<IHelperClassEmitter, CSharpHelperClassEmitter>();
                 services.AddTransient<IMetadataConverter, MetadataConverter>();
-                services.AddTransient<IFieldParser, FieldParser>();
+                services.AddTransient<IKintoneFieldParser, KintoneFieldParser>();
 
                 // Codeエミッターファクトリ
                 services.AddTransient<ICodeEmitter, CSharpCodeEmitter>();
@@ -102,7 +102,7 @@ internal class Program {
                 services.AddTransient<INameConverterFactory, NameConverterFactory>();
                 services.AddTransient<INameTableApplicable, CSharpNameConverter>();
                 services.AddTransient<INameTableApplicable, PythonNameConverter>();
-                services.AddTransient<IFieldParser, FieldParser>();
+                services.AddTransient<IKintoneFieldParser, KintoneFieldParser>();
                 services.AddTransient<INameTableGenerator, NameTableGenerator>();
                 services.AddTransient<CSharpNameConverter>();
                 services.AddTransient<PythonNameConverter>();

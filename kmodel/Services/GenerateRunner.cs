@@ -23,7 +23,7 @@ namespace kmodel.Services;
 public class GenerateRunner(
     IFileWriter fileWriter,
     ISchemaConverter schemaConverter,
-    IFieldParser parser,
+    IKintoneFieldParser parser,
     IMetadataConverter converter,
     ISchemaProvider schemaProvider,
     ICodeEmitterFactory codeEmitterFactory,
@@ -33,7 +33,7 @@ public class GenerateRunner(
 
     private readonly IFileWriter _fileWriter = fileWriter;
     private readonly ISchemaConverter _schemaConverter = schemaConverter;
-    private readonly IFieldParser _fieldParser = parser;
+    private readonly IKintoneFieldParser _fieldParser = parser;
     private readonly IMetadataConverter _converter = converter;
     private readonly ISchemaProvider _schemaProvider = schemaProvider;
     private readonly ICodeEmitterFactory _codeEmitterFactory = codeEmitterFactory;
