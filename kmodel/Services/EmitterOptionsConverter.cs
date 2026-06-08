@@ -12,8 +12,8 @@ namespace kmodel.Services;
 /// 変換後の CodeEmitterOptions は、コード生成の際に使用されます。例えば、C# の場合は CSharpEmitterOptions、Python の場合は PythonEmitterOptions になります。変換の過程で、必要に応じてデフォルト値を設定したり、オプションの整合性をチェックしたりすることもできます。
 /// </summary>
 /// <param name="logger">ロガー</param>
-public class SchemaConverter(ILogger<SchemaConverter> logger) : ISchemaConverter {
-    private readonly ILogger<SchemaConverter> _logger = logger;
+public class EmitterOptionsConverter(ILogger<EmitterOptionsConverter> logger) : IEmitterOptionsConverter {
+    private readonly ILogger<EmitterOptionsConverter> _logger = logger;
 
     /// <summary>
     /// GenerateOptions を CodeEmitterOptions に変換する。options.GenerateLanguage に基づいて、適切な CodeEmitterOptions のサブクラスに変換します。サポートされていない言語が指定された場合は NotSupportedException をスローします。
@@ -65,11 +65,11 @@ public class SchemaConverter(ILogger<SchemaConverter> logger) : ISchemaConverter
             HeaderComment = options.HeaderComment,
 
             // C# 固有
-            Namespace = options.Namespace ?? "KintoneModels",
-            UseRecord = options.UseRecord,
-            UsePartial = options.UsePartial,
-            NullableEnabled = options.NullableEnabled,
-            UseKintoneNetLibrary = !options.PureMode
+            Namespace = options.CSharp.Namespace,
+            UseRecord = options.CSharp.UseRecord,
+            UsePartial = options.CSharp.UsePartial,
+            NullableEnabled = options.CSharp.NullableEnabled,
+            UseKintoneNetLibrary = !options.CSharp.PureMode
         };
 
         return cs;
@@ -90,8 +90,8 @@ public class SchemaConverter(ILogger<SchemaConverter> logger) : ISchemaConverter
             HeaderComment = options.HeaderComment,
 
             // Python 固有
-            ModuleName = options.ModuleName ?? "kintone_models",
-            UseTypeHint = options.UseTypeHint
+            ModuleName = options.Python.ModuleName,
+            UseTypeHint = options.Python.UseTypeHint
         };
 
         return py;

@@ -1,5 +1,4 @@
 using System.Text;
-using System.Text.Json;
 using KintoneNetLibrary.Domain.Entities;
 using KintoneNetLibrary.Domain.Enums;
 
@@ -56,18 +55,6 @@ public static class KintoneMetadataDiffExtensions {
     private static string GetLabelWithCode(this KintoneFieldMetadata field) {
         var label = field.FieldLabel ?? "(no label)";
         return $"{label} ({field.FieldCode})";
-    }
-
-    /// <summary>
-    /// DiffResult を JSON 形式で出力する。DiffResult オブジェクト全体を JSON 文字列にシリアライズします。これにより、差分結果を構造化された形式で保存したり、他のシステムと連携したりすることが容易になります。JSON 形式は人間にも読みやすく、またプログラムによる解析も簡単です。
-    /// 例えば、diff.ToJson() と呼び出すと、その DiffResult インスタンスの内容が JSON 文字列として返されます。JSON 文字列には、DiffType、BeforeRevision、AfterRevision、Before フィールドの情報、After フィールドの情報、変更されたプロパティのリスト、およびサブテーブルの差分が含まれます。
-    /// </summary>
-    /// <param name="diff">DiffResult インスタンス</param>
-    /// <returns>JSON 形式の差分結果</returns>
-    public static string ToJson(this KintoneMetadataDiff diff) {
-        return JsonSerializer.Serialize(diff, new JsonSerializerOptions {
-            WriteIndented = true
-        });
     }
 
     /// <summary>

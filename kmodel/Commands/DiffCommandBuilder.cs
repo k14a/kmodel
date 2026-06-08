@@ -37,7 +37,7 @@ public class DiffCommandBuilder(IHost host) : BaseCommandBuilder(host) {
         this.SetHandler(cmd, async parse => {
             var d = new DiffOptions {
                 AppId = parse.GetValue(app),
-                ApiToken = parse.GetValue(token),
+                ApiToken = parse.GetValue(token) ?? string.Empty,
                 OutputDirectory = parse.GetValue(outDir) ?? ".",
                 EscapeUnicode = parse.GetValue(escape),
                 Pretty = parse.GetValue(pretty),
@@ -46,7 +46,7 @@ public class DiffCommandBuilder(IHost host) : BaseCommandBuilder(host) {
             };
 
             var runner = this._host.Services.GetRequiredService<DiffRunner>();
-            await runner.RunAsync(d, parse.GetValue(sub));
+            await runner.RunAsync(d, parse.GetValue(sub) ?? string.Empty);
         });
 
         return cmd;

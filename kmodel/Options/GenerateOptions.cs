@@ -1,5 +1,4 @@
 using KintoneNetLibrary.CodeGen.Domain.Enums;
-using kmodel.Enums;
 
 namespace kmodel.Options;
 
@@ -7,7 +6,7 @@ namespace kmodel.Options;
 /// コード生成オプション
 /// </summary>
 public class GenerateOptions {
-    #region <<for CodeEmitterOptions>>
+    #region <<共通 / CodeEmitterOptions>>
     /// <summary>
     /// アプリID
     /// </summary>
@@ -17,12 +16,6 @@ public class GenerateOptions {
     /// APIトークン
     /// </summary>
     public string ApiToken { get; set; } = string.Empty;
-
-    /// <summary>
-    /// Pure モードを使用するか
-    /// </summary>
-    /// <notes>falseの場合、KintoneNetLibrary 依存のコードが生成されます。</notes>
-    public bool PureMode { get; set; }
 
     /// <summary>
     /// 列挙型を生成するか
@@ -40,7 +33,7 @@ public class GenerateOptions {
     public bool SplitSubTableFiles { get; set; } = true;
 
     /// <summary>
-    /// pure モードの補助クラス（UserInfo など）を別ファイルに分割するか
+    /// 補助クラス（UserInfo など）を別ファイルに分割するか
     /// </summary>
     public bool SplitHelperFiles { get; set; } = true;
 
@@ -48,71 +41,44 @@ public class GenerateOptions {
     /// 生成ファイルの先頭に出力するコメント
     /// </summary>
     public string? HeaderComment { get; set; }
-    #endregion // <<for CodeEmitterOptions>>
-
-    #region <<for CSharpEmitterOptions>>
-    /// <summary>
-    /// 名前空間
-    /// </summary>
-    public string Namespace { get; set; } = "KintoneModels";
 
     /// <summary>
-    /// クラス名
+    /// 生成するメインクラス名（C#・Python 共通）
     /// </summary>
     public string? ClassName { get; set; }
+    #endregion // <<共通 / CodeEmitterOptions>>
 
+    #region <<言語固有オプション>>
     /// <summary>
-    /// クラスの代わりにレコードを使用するか
+    /// C# 固有オプション
     /// </summary>
-    public bool UseRecord { get; set; }
+    public CSharpOptions CSharp { get; set; } = new();
 
     /// <summary>
-    /// partial class を生成するか
+    /// Python 固有オプション
     /// </summary>
-    public bool UsePartial { get; set; } = true;
+    public PythonOptions Python { get; set; } = new();
+    #endregion // <<言語固有オプション>>
 
+    #region <<ファイル出力>>
     /// <summary>
-    /// #nullable enable を付与するか
+    /// ファイル出力オプション
     /// </summary>
-    public bool NullableEnabled { get; set; } = true;
-    #endregion // <<for CSharpEmitterOptions>>
-
-    #region <<for PythonEmitterOptions>>
-    /// <summary>
-    /// 生成するモジュール名
-    /// </summary>
-    public string ModuleName { get; set; } = "kintone_models";
+    public FileWriterOptions FileWriter { get; set; } = new();
+    #endregion // <<ファイル出力>>
 
     /// <summary>
-    /// type hint を付与するか
-    /// </summary>
-    public bool UseTypeHint { get; set; } = true;
-    #endregion // <<for PythonEmitterOptions>>
-
-    #region <<for FileWriterOptions>>
-    /// <summary>
-    /// 出力ディレクトリ
-    /// </summary>
-    public string OutputDirectory { get; set; } = ".";
-
-    /// <summary>
-    /// 既存ファイルを上書きするか
-    /// </summary>
-    public bool OverwriteExistingFiles { get; set; }
-    #endregion // <<for FileWriterOptions>>
-
-    /// <summary>
-    /// フィールド定義ファイルのパス。これが指定された場合、Kintone API からスキーマを取得せず、代わりにこのファイルからフィールド定義を読み取ります。ファイルは JSON 形式で、Kintone API のフィールド定義と同じ構造を持つ必要があります。このオプションは、API アクセスが制限されている環境や、既存のフィールド定義を再利用したい場合に便利です。
+    /// フィールド定義ファイルのパス。指定された場合、Kintone API の代わりにこのファイルからフィールド定義を読み取る。
     /// </summary>
     public string FieldsFile { get; set; } = string.Empty;
 
     /// <summary>
-    /// エクスポート名テーブルのテンプレートファイルのパス。これが指定された場合、コード生成時にフィールドコードとフィールド名の対応表をこのテンプレートファイルに基づいて生成します。ファイルは JSON 形式で、フィールドコードをキー、フィールド名を値とするオブジェクトの構造を持つ必要があります。このオプションは、生成されるコードでフィールドコードを人間が理解しやすい名前にマッピングしたい場合に便利です。
+    /// 名前テーブルテンプレートのエクスポート先ファイルパス。指定された場合、コード生成は行わずテンプレートを出力する。
     /// </summary>
     public string ExportNameTableTemplate { get; set; } = string.Empty;
 
     /// <summary>
-    /// エクスポート名テーブルの出力ファイルのパス。これが指定された場合、コード生成時にフィールドコードとフィールド名の対応表をこのファイルに出力します。ファイルは JSON 形式で、フィールドコードをキー、フィールド名を値とするオブジェクトの構造になります。このオプションは、生成されるコードでフィールドコードを人間が理解しやすい名前にマッピングしたい場合に便利です。
+    /// 名前テーブルファイルのパス。フィールドコードとプロパティ名の対応表を読み込む。
     /// </summary>
     public string NameTable { get; set; } = string.Empty;
 }

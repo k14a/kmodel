@@ -28,29 +28,23 @@ internal class Program {
         var logger = host.Services.GetRequiredService<ILogger<Program>>();
         logger.LogDebug("kmodel starting...");
 
-        try {
-            var runner = host.Services.GetRequiredService<KModelApplication>();
-            var configLoader = host.Services.GetRequiredService<ConfigLoader>();
+        var runner = host.Services.GetRequiredService<KModelApplication>();
 
-            // ============================================================
-            // 引数なし → config.json を使って現行の RunAsync() を実行
-            // ============================================================
-            if (args.Length == 0) {
-                logger.LogDebug("kmodel starting with config.json...");
-                await runner.RunAsync();
-                logger.LogDebug("kmodel finished.");
-                return 0;
-            }
-
-            // ============================================================
-            // 引数あり → System.CommandLine でパースしてコマンド実行
-            // ============================================================
-            var rootCommand = RootCommandBuilder.Build(host);
-            return await rootCommand.Parse(args).InvokeAsync();
-
-        } finally {
+        // ============================================================
+        // 引数なし → config.json を使って現行の RunAsync() を実行
+        // ============================================================
+        if (args.Length == 0) {
+            logger.LogDebug("kmodel starting with config.json...");
+            await runner.RunAsync();
             logger.LogDebug("kmodel finished.");
+            return 0;
         }
+
+        // ============================================================
+        // 引数あり → System.CommandLine でパースしてコマンド実行
+        // ============================================================
+        var rootCommand = RootCommandBuilder.Build(host);
+        return await rootCommand.Parse(args).InvokeAsync();
     }
 
     /// <summary>
@@ -80,16 +74,15 @@ internal class Program {
                 services.AddSingleton<RawRunner>();
                 services.AddSingleton<DiffRunner>();
                 services.AddSingleton<IFileWriter, FileWriter>();
-                services.AddSingleton<ISchemaConverter, SchemaConverter>();
+                services.AddSingleton<IEmitterOptionsConverter, EmitterOptionsConverter>();
 
                 // KintoneNetLibrary.CodeGen 関連サービス
                 services.AddTransient<ISchemaProvider, SchemaProvider>();
+                services.AddTransient<IKintoneFieldParser, KintoneFieldParser>();
+                services.AddTransient<ILocalSchemaProviderFactory, LocalSchemaProviderFactory>();
                 services.AddTransient<IXmlCommentBuilder, CSharpXmlCommentBuilder>();
                 services.AddTransient<ISubTableEmitter, CSharpSubTableEmitter>();
                 services.AddTransient<IHelperClassEmitter, CSharpHelperClassEmitter>();
-                services.AddTransient<IMetadataConverter, MetadataConverter>();
-                services.AddTransient<IKintoneFieldParser, KintoneFieldParser>();
-
                 // Codeエミッターファクトリ
                 services.AddTransient<ICodeEmitter, CSharpCodeEmitter>();
                 services.AddTransient<ICodeEmitter, PythonCodeEmitter>();
@@ -102,7 +95,6 @@ internal class Program {
                 services.AddTransient<INameConverterFactory, NameConverterFactory>();
                 services.AddTransient<INameTableApplicable, CSharpNameConverter>();
                 services.AddTransient<INameTableApplicable, PythonNameConverter>();
-                services.AddTransient<IKintoneFieldParser, KintoneFieldParser>();
                 services.AddTransient<INameTableGenerator, NameTableGenerator>();
                 services.AddTransient<CSharpNameConverter>();
                 services.AddTransient<PythonNameConverter>();

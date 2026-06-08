@@ -35,14 +35,14 @@ public class RawCommandBuilder(IHost host) : BaseCommandBuilder(host) {
         this.SetHandler(cmd, async parse => {
             var r = new RawOptions {
                 AppId = parse.GetValue(app),
-                ApiToken = parse.GetValue(token),
+                ApiToken = parse.GetValue(token) ?? string.Empty,
                 OutputDirectory = parse.GetValue(outDir),
                 EscapeUnicode = parse.GetValue(escape),
                 Pretty = parse.GetValue(pretty)
             };
 
-            var runner = host.Services.GetRequiredService<RawRunner>();
-            await runner.RunAsync(r, parse.GetValue(sub));
+            var runner = this._host.Services.GetRequiredService<RawRunner>();
+            await runner.RunAsync(r, parse.GetValue(sub) ?? string.Empty);
         });
 
         return cmd;

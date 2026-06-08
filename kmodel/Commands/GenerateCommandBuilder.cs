@@ -75,15 +75,17 @@ public class GenerateCommandBuilder(IHost host) : BaseCommandBuilder(host) {
                 AppId = parse.GetValue(appIdOption),
                 ApiToken = apiToken ?? string.Empty,
                 FieldsFile = fieldsFile ?? string.Empty,
-                GenerateLanguage = Enum.Parse<GenerateLanguages>(parse.GetValue(languageOption), true),
-                OutputDirectory = parse.GetValue(outputDirectoryOption) ?? ".",
+                GenerateLanguage = Enum.Parse<GenerateLanguages>(parse.GetValue(languageOption) ?? "CSharp", true),
+                FileWriter = new Options.FileWriterOptions {
+                    OutputDirectory = parse.GetValue(outputDirectoryOption) ?? ".",
+                },
                 ExportNameTableTemplate = templateFile ?? string.Empty,
                 NameTable = nameTableFile ?? string.Empty,
                 ClassName = className,
             };
 
-            var runner = host.Services.GetRequiredService<GenerateRunner>();
-            await runner.RunAsync(g, subDomain);
+            var runner = this._host.Services.GetRequiredService<GenerateRunner>();
+            await runner.RunAsync(g, subDomain ?? string.Empty);
         });
 
         return cmd;

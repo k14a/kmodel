@@ -12,6 +12,7 @@ namespace kmodel.Services;
 /// <typeparam name="TRunner">Runner の型</typeparam>
 /// <param name="logger">ロガー</param>
 public abstract class RunnerBase<TRunner>(ILogger<TRunner> logger) {
+    /// <summary>ロガー</summary>
     protected readonly ILogger<TRunner> _logger = logger;
 
     /// <summary>

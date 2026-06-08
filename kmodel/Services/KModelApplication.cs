@@ -62,7 +62,7 @@ public class KModelApplication(
     private async Task ProcessGeneratesAsync() {
         foreach (var gen in this.Config.Generates) {
             StaticLogMessages.MethodInfo(this._logger, message: $"Processing Generate AppId: {gen.AppId}");
-            await this._generateRunner.RunAsync(gen, this.Config.SubDomain);
+            await this._generateRunner.RunAsync(gen.ToOptions(), this.Config.SubDomain);
         }
     }
 
@@ -73,7 +73,7 @@ public class KModelApplication(
     private async Task ProcessRawsAsync() {
         foreach (var raw in this.Config.Raws) {
             StaticLogMessages.MethodInfo(this._logger, message: $"Processing Raw AppId: {raw.AppId}");
-            await this._rawRunner.RunAsync(raw, this.Config.SubDomain);
+            await this._rawRunner.RunAsync(raw.ToOptions(), this.Config.SubDomain);
         }
     }
 
@@ -84,7 +84,7 @@ public class KModelApplication(
     private async Task ProcessDiffsAsync() {
         foreach (var diff in this.Config.Diffs) {
             StaticLogMessages.MethodInfo(this._logger, message: $"Processing Diff AppId: {diff.AppId}");
-            await this._diffRunner.RunAsync(diff, this.Config.SubDomain);
+            await this._diffRunner.RunAsync(diff.ToOptions(), this.Config.SubDomain);
         }
     }
 }

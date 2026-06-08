@@ -84,11 +84,11 @@ kmodel init --lang TypeScript
             Diffs = []
         };
 
-        var generate = new GenerateOptions {
+        var generate = new GenerateConfig {
             AppId = 0,
             ApiToken = "",
             GenerateLanguage = Enum.Parse<GenerateLanguages>(lang, true),
-            OutputDirectory = "./Models"
+            FileWriter = new FileWriterOptions { OutputDirectory = "./Models" }
         };
 
         // -------------------------
@@ -96,28 +96,18 @@ kmodel init --lang TypeScript
         // -------------------------
         switch (generate.GenerateLanguage) {
             case GenerateLanguages.CSharp:
-                generate.Namespace = "KintoneModels";
-                generate.UseRecord = false;
-                generate.UsePartial = true;
-                generate.NullableEnabled = true;
+                generate.CSharp.Namespace = "KintoneModels";
+                generate.CSharp.UseRecord = false;
+                generate.CSharp.UsePartial = true;
+                generate.CSharp.NullableEnabled = true;
                 break;
 
             case GenerateLanguages.Python:
-                generate.ModuleName = "kintone_models";
-                generate.UseTypeHint = true;
+                generate.Python.ModuleName = "kintone_models";
+                generate.Python.UseTypeHint = true;
                 break;
 
-            case GenerateLanguages.TypeScript:
-                generate.ModuleName = "kintone-models";
-                break;
-
-            case GenerateLanguages.Go:
-                generate.ModuleName = "kintone_models";
-                break;
-
-            case GenerateLanguages.Java:
-                generate.Namespace = "kintone.models";
-                break;
+            // TypeScript / Go / Java は未実装のため共通オプションのみ設定
         }
 
         config.Generates.Add(generate);

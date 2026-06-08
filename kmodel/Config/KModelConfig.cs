@@ -1,5 +1,3 @@
-using kmodel.Options;
-
 namespace kmodel.Config;
 
 /// <summary>
@@ -11,15 +9,15 @@ public class KModelConfig {
     /// </summary>
     public string SubDomain { get; set; } = string.Empty;
     /// <summary>
-    /// コード生成オプションリスト
+    /// コード生成設定リスト
     /// </summary>
-    public List<GenerateOptions> Generates { get; set; } = [];
+    public List<GenerateConfig> Generates { get; set; } = [];
     /// <summary>
-    /// Raw メタデータ出力オプションリスト
+    /// Raw メタデータ出力設定リスト
     /// </summary>
-    public List<RawOptions> Raws { get; set; } = [];
+    public List<RawConfig> Raws { get; set; } = [];
     /// <summary>
-    /// Diff メタデータ出力オプションリスト
+    /// Diff メタデータ出力設定リスト
     /// </summary>
-    public List<DiffOptions> Diffs { get; set; } = [];
+    public List<DiffConfig> Diffs { get; set; } = [];
 }

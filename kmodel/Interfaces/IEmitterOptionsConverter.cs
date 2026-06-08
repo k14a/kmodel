@@ -1,14 +1,12 @@
 using KintoneNetLibrary.CodeGen.Domain.Options;
-using KintoneNetLibrary.CodeGen.Domain.Schemas;
-using KintoneNetLibrary.Domain.Entities;
 using kmodel.Options;
 
 namespace kmodel.Interfaces;
 
 /// <summary>
-/// スキーマ変換インターフェース
+/// GenerateOptions を CodeEmitterOptions へ変換するインターフェース
 /// </summary>
-public interface ISchemaConverter {
+public interface IEmitterOptionsConverter {
     /// <summary>
     /// GenerateOptions を CodeEmitterOptions に変換する
     /// </summary>

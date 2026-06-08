@@ -1,10 +1,12 @@
 using kmodel.Options;
 using kmodel.Interfaces;
+using kmodel.Enums;
+using kmodel.Extensions;
 using KintoneNetLibrary.Domain.Entities;
 using System.Text.Json;
+using System.Text.Encodings.Web;
 using KintoneNetLibrary.CodeGen.Application.Interfaces;
 using Microsoft.Extensions.Logging;
-using KintoneNetLibrary.Domain.Access;
 
 namespace kmodel.Services;
 
@@ -32,8 +34,6 @@ public class DiffRunner(
         => this.ExecuteAsync(
             $"Starting metadata diff for AppId: {options.AppId}",
             async () => {
-                this._schemaProvider.SetDomain(subDomain);
-
                 string? previousFile = options.CompareWithFile;
                 if (string.IsNullOrWhiteSpace(previousFile)) {
                     previousFile = Directory
@@ -55,16 +55,36 @@ public class DiffRunner(
                     return;
                 }
 
-                var access = new ApiTokenAccess(subDomain, options.ApiToken);
-                var diffs = await this._schemaProvider.CompareAsync(previous, access.Domain, options.ApiToken, options.AppId);
+                var diffs = await this._schemaProvider.CompareAsync(previous, subDomain, options.ApiToken, options.AppId);
 
                 if (diffs.Count == 0) {
                     this.Info("No differences found between the metadata.");
                     return;
                 }
 
-                this._fileWriter.WriteDiffResults(diffs, options);
+                var content = this.SerializeDiffs(diffs, options);
+                this._fileWriter.WriteDiffResults(content, options);
 
                 this.Info($"Metadata diff completed for AppId: {options.AppId}");
             });
+
+    /// <summary>
+    /// 差分結果を指定フォーマットの文字列にシリアライズする
+    /// </summary>
+    private string SerializeDiffs(IReadOnlyList<KintoneMetadataDiff> diffs, DiffOptions options) {
+        return options.OutputFormat switch {
+            DiffOutputFormats.Json => JsonSerializer.Serialize(
+                diffs,
+                new JsonSerializerOptions {
+                    WriteIndented = options.Pretty,
+                    Encoder = options.EscapeUnicode
+                        ? null
+                        : JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+                }),
+            DiffOutputFormats.Markdown => string.Join(
+                Environment.NewLine + Environment.NewLine,
+                diffs.Select(d => d.ToMarkdown())),
+            _ => string.Join(Environment.NewLine, diffs.Select(d => d.ToText()))
+        };
+    }
 }

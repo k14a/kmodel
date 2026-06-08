@@ -2,7 +2,6 @@ using kmodel.Options;
 using System.Text.Json;
 using KintoneNetLibrary.CodeGen.Application.Interfaces;
 using Microsoft.Extensions.Logging;
-using KintoneNetLibrary.Domain.Access;
 
 namespace kmodel.Services;
 
@@ -20,14 +19,17 @@ public class RawRunner(
     ILogger<RawRunner> logger) : RunnerBase<RawRunner>(logger) {
     private readonly ISchemaProvider _schemaProvider = schemaProvider;
 
+    /// <summary>
+    /// RAW メタデータのエクスポート処理を実行する。
+    /// </summary>
+    /// <param name="options">エクスポートオプション</param>
+    /// <param name="subDomain">Kintone サブドメイン</param>
+    /// <returns>非同期タスク</returns>
     public Task RunAsync(RawOptions options, string subDomain)
         => this.ExecuteAsync(
             $"Starting RAW metadata export for AppId: {options.AppId}",
             async () => {
-                this._schemaProvider.SetDomain(subDomain);
-
-                var access = new ApiTokenAccess(subDomain, options.ApiToken);
-                var metadata = await this._schemaProvider.GetMetadataAsync(access.Domain, options.ApiToken, options.AppId);
+                var metadata = await this._schemaProvider.GetMetadataAsync(subDomain, options.ApiToken, options.AppId);
 
                 var json = JsonSerializer.Serialize(
                     metadata,

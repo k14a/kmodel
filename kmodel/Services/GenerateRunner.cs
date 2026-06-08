@@ -3,9 +3,6 @@ using kmodel.Interfaces;
 using KintoneNetLibrary.CodeGen.Application.Interfaces;
 using Microsoft.Extensions.Logging;
 using kmodel.Logging;
-using KintoneNetLibrary.Domain.Access;
-using KintoneNetLibrary.CodeGen.Infrastructure.Services;
-using KintoneNetLibrary.Domain.Interfaces;
 using KintoneNetLibrary.CodeGen.Domain.Schemas;
 using System.Text.Json;
 using KintoneNetLibrary.Domain.Common;
@@ -22,24 +19,21 @@ namespace kmodel.Services;
 /// </summary>
 public class GenerateRunner(
     IFileWriter fileWriter,
-    ISchemaConverter schemaConverter,
-    IKintoneFieldParser parser,
-    IMetadataConverter converter,
+    IEmitterOptionsConverter schemaConverter,
     ISchemaProvider schemaProvider,
     ICodeEmitterFactory codeEmitterFactory,
     INameTableGenerator nameTableGenerator,
     INameConverterFactory nameConverterFactory,
-    ILoggerFactory loggerFactory) : RunnerBase<GenerateRunner>(loggerFactory.CreateLogger<GenerateRunner>()) {
+    ILocalSchemaProviderFactory localSchemaProviderFactory,
+    ILogger<GenerateRunner> logger) : RunnerBase<GenerateRunner>(logger) {
 
     private readonly IFileWriter _fileWriter = fileWriter;
-    private readonly ISchemaConverter _schemaConverter = schemaConverter;
-    private readonly IKintoneFieldParser _fieldParser = parser;
-    private readonly IMetadataConverter _converter = converter;
+    private readonly IEmitterOptionsConverter _schemaConverter = schemaConverter;
     private readonly ISchemaProvider _schemaProvider = schemaProvider;
     private readonly ICodeEmitterFactory _codeEmitterFactory = codeEmitterFactory;
     private readonly INameTableGenerator _nameTableGenerator = nameTableGenerator;
     private readonly INameConverterFactory _nameConverterFactory = nameConverterFactory;
-    private readonly ILoggerFactory _loggerFactory = loggerFactory;
+    private readonly ILocalSchemaProviderFactory _localSchemaProviderFactory = localSchemaProviderFactory;
 
     /// <summary>
     /// コード生成処理を実行する。options で指定された AppId とサブドメインを使用して Kintone API からスキーマを取得し、指定された言語でコードを生成してファイルに出力する。
@@ -76,15 +70,10 @@ public class GenerateRunner(
     private ISchemaProvider CreateProvider(GenerateOptions options, string subDomain) {
         if (!string.IsNullOrEmpty(options.FieldsFile)) {
             StaticLogMessages.MethodInfo(this._logger, message: $"Using LocalJsonSchemaProvider with fields file: {options.FieldsFile}");
-            return new LocalJsonSchemaProvider(
-                options.FieldsFile,
-                this._fieldParser,
-                this._converter,
-                this._loggerFactory.CreateLogger<LocalJsonSchemaProvider>());
+            return this._localSchemaProviderFactory.Create(options.FieldsFile);
         }
 
         StaticLogMessages.MethodInfo(this._logger, message: $"Using SchemaProvider with sub-domain: {subDomain}");
-        this._schemaProvider.SetDomain(subDomain);
         return this._schemaProvider;
     }
 
@@ -100,8 +89,7 @@ public class GenerateRunner(
             return await provider.GetSchemaAsync(string.Empty, string.Empty, options.AppId);
         }
 
-        var access = new ApiTokenAccess(subDomain, options.ApiToken);
-        return await provider.GetSchemaAsync(access.Domain, options.ApiToken, options.AppId);
+        return await provider.GetSchemaAsync(subDomain, options.ApiToken, options.AppId);
     }
 
     /// <summary>
@@ -325,20 +313,29 @@ public class GenerateRunner(
         // NameConverterFactory に nameTable を渡す
         var nameConverter = this._nameConverterFactory.Create(options.GenerateLanguage, nameTable);
 
-        var codeEmitter = this._codeEmitterFactory.Create(options.GenerateLanguage, nameConverter);
-        var result = codeEmitter.Emit(schema, emitterOptions);
+        var codeEmitter = this._codeEmitterFactory.Create(options.GenerateLanguage);
+        var result = codeEmitter.Emit(schema, emitterOptions, nameConverter);
 
-        Directory.CreateDirectory(options.OutputDirectory);
+        Directory.CreateDirectory(options.FileWriter.OutputDirectory);
 
-        var writerOptions = options.ToFileWriterOptions();
-        this._fileWriter.WriteMainModel(result.MainModelCode, emitterOptions, writerOptions, options.AppId, schema.Revision);
+        var writerOptions = options.FileWriter;
+        this._fileWriter.WriteMainModel(
+            $"{emitterOptions.MainClassName}{emitterOptions.FileExtension}",
+            result.MainModelCode,
+            writerOptions);
 
         foreach (var sub in result.SubTableModels) {
-            this._fileWriter.WriteSubTable(sub, emitterOptions, writerOptions, options.AppId, schema.Revision);
+            this._fileWriter.WriteSubTable(
+                $"{sub.ClassName}{emitterOptions.FileExtension}",
+                sub.Code,
+                writerOptions);
         }
 
         foreach (var helper in result.HelperClasses) {
-            this._fileWriter.WriteHelper(helper, emitterOptions, writerOptions, options.AppId, schema.Revision);
+            this._fileWriter.WriteHelper(
+                $"{helper.ClassName}{emitterOptions.FileExtension}",
+                helper.Code,
+                writerOptions);
         }
 
         StaticLogMessages.MethodFinish(this._logger, message: $"Code generation completed for AppId: {options.AppId}");

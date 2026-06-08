@@ -25,6 +25,7 @@ public static class StaticLogMessages {
         if (logger == null) { return; }
         var className = Path.GetFileNameWithoutExtension(filePath);
         methodName = lineNumber > 0 ? $"{methodName}[{lineNumber}]" : methodName;
+        if (!string.IsNullOrEmpty(message)) { methodName = $"{methodName}: {message}"; }
         MethodStartInner(logger, className, methodName, ex);
     }
 
@@ -41,6 +42,7 @@ public static class StaticLogMessages {
         if (logger == null) { return; }
         var className = Path.GetFileNameWithoutExtension(filePath);
         methodName = lineNumber > 0 ? $"{methodName}[{lineNumber}]" : methodName;
+        if (!string.IsNullOrEmpty(message)) { methodName = $"{methodName}: {message}"; }
         MethodFinishInner(logger, className, methodName, ex);
     }
 
