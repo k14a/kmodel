@@ -1,0 +1,42 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - develop
+  pull_request:
+    branches:
+      - develop
+
+jobs:
+  test:
+    name: Build and Test
+    runs-on: ubuntu-latest
+
+    steps:
+      # kmodel と KintoneNetLibrary を隣り合わせに配置する
+      # kmodel/kmodel.csproj の ProjectReference が ../../KintoneNetLibrary/... を参照しているため
+      - name: Checkout kmodel
+        uses: actions/checkout@v4
+        with:
+          path: kmodel
+
+      - name: Checkout KintoneNetLibrary
+        uses: actions/checkout@v4
+        with:
+          repository: k14a/KintoneNetLibrary
+          path: KintoneNetLibrary
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore
+        run: dotnet restore kmodel/kmodel.slnx
+
+      - name: Build
+        run: dotnet build kmodel/kmodel.slnx --no-restore
+
+      - name: Test
+        run: dotnet test kmodel/kmodel.Tests/kmodel.Tests.csproj --no-build --verbosity normal

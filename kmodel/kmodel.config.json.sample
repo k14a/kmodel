@@ -3,9 +3,10 @@
   // リポジトリのルートに kmodel.config.schema.json を配置してください。
   "$schema": "./kmodel.config.schema.json",
 
-  // kmodel で生成したいアプリごとの設定を配列で記述します。
-  // 必須: Kintoneサブドメイン
+  // 必須: Kintone サブドメイン
   "subDomain": "YOUR_SUB_DOMAIN",
+
+  // コード生成設定の配列
   "generates": [
     {
       // 必須: Kintone アプリID
@@ -14,89 +15,100 @@
       // 必須: このアプリにアクセスするための API トークン
       "apiToken": "YOUR_API_TOKEN_HERE",
 
-      // 任意: 生成される C# クラスの namespace
-      "namespace": "KintoneModels.App123",
-
-      // 任意: クラス名を固定したい場合に指定
-      // null の場合はアプリ名などから自動生成されます
-      "className": null,
-
-      // 任意: C# record を使用するかどうか
-      "useRecord": false,
-
-      // 任意: KintoneNetLibrary 固有の属性を付与しない純粋な POCO モデルを生成するか
-      "pureMode": false,
-
-      // 任意: ドロップダウンなどの選択肢を enum として生成するか
-      "generateEnums": false,
-
-      // 任意: 生成言語(デフォルトはCSharp(C#))
+      // 任意: 生成言語（デフォルト: CSharp）
+      // 選択肢: CSharp, Python, TypeScript, Go, Java
       "generateLanguage": "CSharp",
 
-      // 任意: 生成ファイルの出力先ディレクトリ
-      "outputDirectory": "./Models/App123",
+      // 任意: ドロップダウンなどの選択肢を enum として生成するか（デフォルト: false）
+      "generateEnums": false,
 
-      // 任意： 生成ファイルが存在する場合に上書きするかどうか
-      "overwriteExistingFiles": false
+      // 任意: クラス名を固定したい場合に指定（null の場合はアプリ名から自動生成）
+      "className": null,
+
+      // C# 固有オプション
+      "csharp": {
+        // 任意: 生成される C# クラスの名前空間（デフォルト: KintoneModels）
+        "namespace": "KintoneModels.App111",
+
+        // 任意: C# record を使用するかどうか（デフォルト: false）
+        "useRecord": false,
+
+        // 任意: partial class を生成するか（デフォルト: true）
+        "usePartial": true,
+
+        // 任意: #nullable enable を付与するか（デフォルト: true）
+        "nullableEnabled": true,
+
+        // 任意: KintoneNetLibrary 固有の属性を付与しない純粋な POCO を生成するか（デフォルト: false）
+        "pureMode": false
+      },
+
+      // Python 固有オプション（generateLanguage が Python の場合に有効）
+      // "python": {
+      //   "moduleName": "kintone_models",
+      //   "useTypeHint": true
+      // },
+
+      // ファイル出力オプション
+      "fileWriter": {
+        // 任意: 生成ファイルの出力先ディレクトリ（デフォルト: .）
+        "outputDirectory": "./Models/App111",
+
+        // 任意: 生成ファイルが存在する場合に上書きするか（デフォルト: false）
+        "overwriteExistingFiles": false
+      }
     }
-    // 複数アプリを扱いたい場合は、以下のように追加できます:
+    // 複数アプリを扱いたい場合は以下のように追加できます:
     // {
-    //   "appId": 456,
+    //   "appId": 222,
     //   "apiToken": "ANOTHER_TOKEN",
-    //   "namespace": "KintoneModels.App456",
-    //   "className": "Customer",
-    //   "useRecord": true,
-    //   "pureMode": false,
-    //   "generateEnums": false,
-    //   "outputDirectory": "./Models/App456",
-    //   "overwriteExistingFiles": false
+    //   "csharp": { "namespace": "KintoneModels.App222" },
+    //   "fileWriter": { "outputDirectory": "./Models/App222" }
     // }
   ],
+
+  // Raw メタデータ出力設定の配列（任意）
   "raws": [
     {
-      // 必須: Kintone アプリID
       "appId": 222,
-
-      // 必須: このアプリにアクセスするための API トークン
       "apiToken": "YOUR_API_TOKEN_HERE",
 
-      // 任意: 生成ファイルの出力先ディレクトリ
+      // 任意: 出力先ディレクトリ（デフォルト: .）
       "outputDirectory": ".",
 
-      // 任意: 日本語のエスケープを行うかどうか
+      // 任意: 日本語のエスケープを行うか（デフォルト: true）
       "escapeUnicode": false,
 
-      // 任意: 生成する場合に上書きするかどうか
+      // 任意: ファイルが存在する場合に上書きするか（デフォルト: false）
       "overwriteExistingFiles": false
     }
   ],
+
+  // Diff 設定の配列（任意）
   "diffs": [
     {
-      // 必須: Kintone アプリID
       "appId": 333,
-
-      // 必須: このアプリにアクセスするための API トークン
       "apiToken": "YOUR_API_TOKEN_HERE",
 
-      // 任意: 差分ファイルの出力先ディレクトリ
+      // 任意: 出力先ディレクトリ（デフォルト: .）
       "outputDirectory": ".",
 
-      // 任意: 生成する場合に上書きするかどうか
+      // 任意: ファイルが存在する場合に上書きするか（デフォルト: false）
       "overwriteExistingFiles": false,
 
-      // 任意: 比較対象ファイル名
+      // 任意: 比較対象のベースファイルパス
       "compareWithFile": null,
 
-      // 任意: 差分出力フォーマット(Text/Json/Markdown)
+      // 任意: 出力フォーマット（Text / Json / Markdown）（デフォルト: Text）
       "outputFormat": "Text",
 
-      // 任意: 差分出力ファイル名
-      "diffOutputFile": "App9432_Diff.txt",
+      // 任意: 差分出力ファイル名（{appId} プレースホルダーが使用可能）
+      "diffOutputFile": "App333_Diff.txt",
 
-      // 任意: 比較対象のファイルが存在しない場合にエラーにするかどうか
+      // 任意: 比較対象ファイルが存在しない場合にエラーにするか（デフォルト: false）
       "failIfNoBaseFile": false,
 
-      // 任意: 日本語のエスケープを行うかどうか
+      // 任意: 日本語のエスケープを行うか（デフォルト: true）
       "escapeUnicode": true
     }
   ]

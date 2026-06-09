@@ -7,16 +7,17 @@ Kintone の metadata.json / fields.json をシームレスに扱う CLI ツー�
 ## 目次
 
 1. [Introduction](#introduction)
-2. [Features](#features)
-3. [Installation](#installation)
-4. [Quick Start](#quick-start)
-5. [Configuration File](#configuration-file-kmodelconfigjson)
-6. [CLI Commands](#cli-commands)
-7. [Examples](#examples)
-8. [Project Structure](#project-structure)
-9. [Extending kmodel](#extending-kmodel)
-10. [Contributing](#contributing)
-11. [License](#license)
+2. [What's New](#whats-new)
+3. [Features](#features)
+4. [Installation](#installation)
+5. [Quick Start](#quick-start)
+6. [Configuration File](#configuration-file-kmodelconfigjson)
+7. [CLI Commands](#cli-commands)
+8. [Examples](#examples)
+9. [Project Structure](#project-structure)
+10. [Extending kmodel](#extending-kmodel)
+11. [Contributing](#contributing)
+12. [License](#license)
 
 ---
 
@@ -24,13 +25,13 @@ Kintone の metadata.json / fields.json をシームレスに扱う CLI ツー�
 
 **kmodel** は、Kintone の API から取得したメタデータを活用し、以下の処理を自動化する CLI ツールです：
 
-- 🔧 **複数言語へのコード自動生成**: Kintone のアプリスキーマから、C#、Python、TypeScript、Go、Java のモデルコードを生成
-- 📋 **Raw Metadata Export**: Kintone API から取得したメタデータを JSON 形式で保存
-- 🔍 **Metadata Diff**: 異なるバージョンのメタデータを比較し、変更内容を可視化
-- ⚙️ **一括処理**: `kmodel.config.json` で複数アプリの設定を一元管理
-- 🖥️ **System.CommandLine による直感的 CLI**: .NET の最新 CLI フレームワークで統一された使用感
+- **複数言語へのコード自動生成**: Kintone のアプリスキーマから、C#、Python、TypeScript、Go、Java のモデルコードを生成
+- **Raw Metadata Export**: Kintone API から取得したメタデータを JSON 形式で保存
+- **Metadata Diff**: 異なるバージョンのメタデータを比較し、変更内容を可視化
+- **一括処理**: `kmodel.config.json` で複数アプリの設定を一元管理
+- **System.CommandLine による直感的 CLI**: .NET の最新 CLI フレームワークで統一された使用感
 
-kmodel は内部で Kintone API との通信およびメタデータ処理に  
+kmodel は内部で Kintone API との通信およびメタデータ処理に
 [KintoneNetLibrary](https://github.com/k14a/KintoneNetLibrary.git) を使用しています。
 
 **対応言語**:
@@ -39,6 +40,34 @@ kmodel は内部で Kintone API との通信およびメタデータ処理に
 - TypeScript
 - Go
 - Java
+
+---
+
+## What's New
+
+### v0.9.1
+
+**設計改善**
+
+- `GenerateOptions` のゴッドクラス問題を解消。言語固有オプション（C#: `CSharpOptions`、Python: `PythonOptions`）とファイル出力オプション（`FileWriterOptions`）を別クラスに分離し、設定ファイルの構造がよりフラットになりました。
+- Config モデルと実行時 Options を分離。`KModelConfig` が CLI オプションを直接参照する設計を解消し、`GenerateConfig` / `RawConfig` / `DiffConfig` と各 Options の間に変換層を導入しました。
+- `ISchemaConverter` / `SchemaConverter` を `IEmitterOptionsConverter` / `EmitterOptionsConverter` に改名し、責務を明確化しました。
+- `ILocalSchemaProviderFactory` を導入し、`GenerateRunner` が Infrastructure の具象クラスを直接 `new` する依存を解消しました。
+
+**品質向上**
+
+- xUnit テストプロジェクト `kmodel.Tests` を新設。57 件のユニットテストを追加しました。
+  - `EmitterOptionsConverter` 変換ロジック（10 件）
+  - `GenerateRunner` CSV/TSV パーサー（14 件）
+  - `KintoneMetadataDiffExtensions.ToText` / `ToMarkdown`（14 件）
+  - `FileWriter` の上書き制御・ファイル名検証（9 件）
+  - `ConfigLoader.Load` のデシリアライズ（7 件）
+  - `*Config.ToOptions()` プロパティマッピング（3 件）
+- ビルド警告をすべて解消しました（CS9107 / CS8601 / CS8604 / CS1591）。
+
+**⚠️ 設定ファイルの構造変更（破壊的変更）**
+
+`generates` エントリの C#・Python 固有オプションおよびファイル出力オプションの JSON キーが変わりました。`kmodel.config.json` の更新が必要です。詳細は [Configuration File](#configuration-file-kmodelconfigjson) を参照してください。
 
 ---
 
@@ -53,6 +82,7 @@ kmodel は内部で Kintone API との通信およびメタデータ処理に
 | **Pure Mode** | フレームワーク依存なし（C#）の純粋なモデルクラスを生成 |
 | **Enum Generation** | ドロップダウン・ラジオボタンなどの選択肢を自動的に enum 化 |
 | **Namespace/Module** | 言語に応じたモジュール・名前空間の自動設定 |
+| **Name Table** | フィールドコードとプロパティ名の対応表でカスタムマッピングに対応 |
 | **Metadata Export** | 生のメタデータを JSON で出力（API 応答をそのまま保存） |
 | **Diff Reporting** | メタデータの変更を検出し、差分を複数形式でレポート |
 | **Batch Processing** | `kmodel.config.json` で複数アプリを一度に処理 |
@@ -124,10 +154,10 @@ cp kmodel.config.json.sample kmodel.config.json
 エディタで `kmodel.config.json` を開き、以下を設定：
 
 - `subDomain`: あなたの Kintone サブドメイン（例：`mycompany`）
-- `appId`: 対象アプリID
-- `apiToken`: API トークン（参照権限が必要）
-- `namespace`（C#）: モデルクラスの名前空間
-- `outputDirectory`: コード生成先
+- `generates[*].appId`: 対象アプリID
+- `generates[*].apiToken`: API トークン（参照権限が必要）
+- `generates[*].csharp.namespace`（C#）: モデルクラスの名前空間
+- `generates[*].fileWriter.outputDirectory`: コード生成先
 
 ### 3. コード生成
 
@@ -170,30 +200,36 @@ kmodel generate --config kmodel.config.json
       // 必須: このアプリへのアクセストークン
       "apiToken": "YOUR_API_TOKEN_HERE",
 
-      // 任意: C# クラスの名前空間（デフォルト: KintoneModels）
-      "namespace": "KintoneModels.App111",
-
-      // 任意: クラス名を固定（null で自動生成）
-      "className": null,
-
-      // 任意: record 型を使用するか（デフォルト: false）
-      "useRecord": false,
-
-      // 任意: Pure モード - フレームワーク依存なしの POCO を生成（C# 専用）
-      "pureMode": false,
-
-      // 任意: 選択肢を enum として生成するか（デフォルト: false）
-      "generateEnums": false,
-
       // 任意: 生成言語（デフォルト: CSharp）
       // 選択肢: CSharp, Python, TypeScript, Go, Java
       "generateLanguage": "CSharp",
 
-      // 任意: 出力ディレクトリ（デフォルト: .）
-      "outputDirectory": "./Models/App111",
+      // 任意: 選択肢を enum として生成するか（デフォルト: false）
+      "generateEnums": false,
 
-      // 任意: 既存ファイルを上書きするか（デフォルト: false）
-      "overwriteExistingFiles": false
+      // 任意: クラス名を固定（null で自動生成）
+      "className": null,
+
+      // C# 固有オプション
+      "csharp": {
+        "namespace": "KintoneModels.App111",
+        "useRecord": false,
+        "usePartial": true,
+        "nullableEnabled": true,
+        "pureMode": false
+      },
+
+      // Python 固有オプション（generateLanguage が Python の場合）
+      "python": {
+        "moduleName": "kintone_models",
+        "useTypeHint": true
+      },
+
+      // ファイル出力オプション
+      "fileWriter": {
+        "outputDirectory": "./Models/App111",
+        "overwriteExistingFiles": false
+      }
     }
   ],
 
@@ -203,6 +239,7 @@ kmodel generate --config kmodel.config.json
       "appId": 111,
       "apiToken": "YOUR_API_TOKEN_HERE",
       "outputDirectory": "./Metadata",
+      "escapeUnicode": false,
       "overwriteExistingFiles": false
     }
   ],
@@ -213,7 +250,10 @@ kmodel generate --config kmodel.config.json
       "appId": 111,
       "apiToken": "YOUR_API_TOKEN_HERE",
       "outputDirectory": "./Diffs",
-      "outputFormat": "json"
+      "outputFormat": "Text",
+      "diffOutputFile": "App111_Diff.txt",
+      "compareWithFile": null,
+      "failIfNoBaseFile": false
     }
   ]
 }
@@ -221,31 +261,40 @@ kmodel generate --config kmodel.config.json
 
 ### 主要オプション解説
 
-#### C# 固有オプション
+#### 共通オプション（`generates[*]` 直下）
+
+| オプション | 型 | デフォルト | 説明 |
+|---|---|---|---|
+| `appId` | int | 必須 | Kintone アプリID |
+| `apiToken` | string | 必須 | API トークン |
+| `generateLanguage` | string | `CSharp` | 生成言語 |
+| `generateEnums` | bool | false | 選択肢を enum 化 |
+| `splitSubTableFiles` | bool | true | サブテーブルを別ファイルに分割 |
+| `splitHelperFiles` | bool | true | 補助クラスを別ファイルに分割 |
+| `className` | string? | null | クラス名（null で自動生成） |
+| `headerComment` | string? | null | 生成ファイルの先頭コメント |
+
+#### C# 固有オプション（`generates[*].csharp`）
 
 | オプション | 型 | デフォルト | 説明 |
 |---|---|---|---|
 | `namespace` | string | `KintoneModels` | 生成クラスの名前空間 |
-| `className` | string? | null | クラス名（null で自動生成） |
 | `useRecord` | bool | false | `record` 型を使用（.NET 5.0+） |
 | `usePartial` | bool | true | `partial class` で生成 |
 | `nullableEnabled` | bool | true | `#nullable enable` を付与 |
 | `pureMode` | bool | false | KintoneNetLibrary 属性を除外 |
 
-#### Python 固有オプション
+#### Python 固有オプション（`generates[*].python`）
 
 | オプション | 型 | デフォルト | 説明 |
 |---|---|---|---|
 | `moduleName` | string | `kintone_models` | Python モジュール名 |
 | `useTypeHint` | bool | true | Type Hint を付与 |
 
-#### 共通オプション
+#### ファイル出力オプション（`generates[*].fileWriter`）
 
 | オプション | 型 | デフォルト | 説明 |
 |---|---|---|---|
-| `appId` | int | 必須 | Kintone アプリID |
-| `apiToken` | string | 必須 | API トークン |
-| `generateEnums` | bool | false | 選択肢を enum 化 |
 | `outputDirectory` | string | `.` | 出力先ディレクトリ |
 | `overwriteExistingFiles` | bool | false | ファイル上書きの可否 |
 
@@ -338,16 +387,16 @@ kmodel diff --subdomain <SUBDOMAIN> --app <APP_ID> --token <TOKEN> [OPTIONS]
 | `--app` | int | ○ | Kintone アプリID |
 | `--token` | string | ○ | API トークン |
 | `--out` | string | × | 出力ディレクトリ（デフォルト: .） |
-| `--format` | string | × | 出力形式（json / yaml / markdown） |
+| `--format` | string | × | 出力形式（Text / Json / Markdown） |
 
 #### 使用例
 
 ```bash
-# 差分をコンソールに出力（デフォルト）
+# 差分をテキスト形式で出力（デフォルト）
 kmodel diff --subdomain mycompany --app 123 --token abc123
 
-# JSON 形式で出力
-kmodel diff --subdomain mycompany --app 123 --token abc123 --format json --out ./diffs
+# Markdown 形式で出力
+kmodel diff --subdomain mycompany --app 123 --token abc123 --format Markdown --out ./diffs
 ```
 
 ### init
@@ -419,20 +468,20 @@ Models/
     {
       "appId": 111,
       "apiToken": "token111",
-      "namespace": "KintoneModels.Customers",
-      "outputDirectory": "./Models/Customers"
+      "csharp": { "namespace": "KintoneModels.Customers" },
+      "fileWriter": { "outputDirectory": "./Models/Customers" }
     },
     {
       "appId": 222,
       "apiToken": "token222",
-      "namespace": "KintoneModels.Orders",
-      "outputDirectory": "./Models/Orders"
+      "csharp": { "namespace": "KintoneModels.Orders" },
+      "fileWriter": { "outputDirectory": "./Models/Orders" }
     },
     {
       "appId": 333,
       "apiToken": "token333",
-      "namespace": "KintoneModels.Products",
-      "outputDirectory": "./Models/Products"
+      "csharp": { "namespace": "KintoneModels.Products" },
+      "fileWriter": { "outputDirectory": "./Models/Products" }
     }
   ]
 }
@@ -467,7 +516,7 @@ models/
 kmodel raw --subdomain mycompany --app 123 --token YOUR_TOKEN --out ./metadata
 
 # 時間が経過後、差分を確認
-kmodel diff --subdomain mycompany --app 123 --token YOUR_TOKEN --out ./diffs --format markdown
+kmodel diff --subdomain mycompany --app 123 --token YOUR_TOKEN --out ./diffs --format Markdown
 ```
 
 ### 例5: TypeScript / JavaScript での使用
@@ -484,45 +533,73 @@ kmodel generate --subdomain mycompany --app 123 --token YOUR_TOKEN --lang TypeSc
 
 ```
 kmodel/
-├── Commands/                     # CLI コマンド定義
-│   ├── RootCommandBuilder.cs    # ルートコマンド
-│   ├── GenerateCommandBuilder.cs # generate コマンド
-│   ├── RawCommandBuilder.cs      # raw コマンド
-│   ├── DiffCommandBuilder.cs     # diff コマンド
-│   └── InitCommandBuilder.cs     # init コマンド
+├── Commands/                          # CLI コマンド定義
+│   ├── RootCommandBuilder.cs         # ルートコマンド
+│   ├── BaseCommandBuilder.cs         # コマンド基底クラス
+│   ├── GenerateCommandBuilder.cs     # generate コマンド
+│   ├── RawCommandBuilder.cs          # raw コマンド
+│   ├── DiffCommandBuilder.cs         # diff コマンド
+│   ├── InitCommandBuilder.cs         # init コマンド
+│   └── OptionFactory.cs              # CLI オプション定義のファクトリー
 │
-├── Options/                      # CLI オプション定義
-│   ├── GenerateOptions.cs       # generate オプション
-│   ├── RawOptions.cs            # raw オプション
-│   ├── DiffOptions.cs           # diff オプション
-│   ├── FileWriterOptions.cs     # ファイル出力オプション
-│   └── GenerateOptionsExtensions.cs
+├── Config/                            # 設定ファイル管理
+│   ├── ConfigLoader.cs               # JSON 設定の読み込み
+│   ├── KModelConfig.cs               # 設定ルートモデル
+│   ├── GenerateConfig.cs             # generates エントリモデル
+│   ├── RawConfig.cs                  # raws エントリモデル
+│   └── DiffConfig.cs                 # diffs エントリモデル
 │
-├── Config/                       # 設定ファイル管理
-│   ├── ConfigLoader.cs          # JSON 設定の読み込み
-│   └── KModelConfig.cs          # 設定データモデル
+├── Options/                           # 実行時オプション
+│   ├── GenerateOptions.cs            # generate オプション
+│   ├── CSharpOptions.cs              # C# 固有オプション
+│   ├── PythonOptions.cs              # Python 固有オプション
+│   ├── FileWriterOptions.cs          # ファイル出力オプション
+│   ├── RawOptions.cs                 # raw オプション
+│   └── DiffOptions.cs                # diff オプション
 │
-├── Services/                     # コア処理
-│   ├── CodeGenRunner.cs         # コード生成実行
-│   ├── SchemaConverter.cs       # メタデータ → スキーマ変換
-│   ├── FileWriter.cs            # ファイル出力
-│   └── KModelApplication.cs     # アプリケーション本体
+├── Interfaces/                        # 拡張ポイント
+│   ├── IEmitterOptionsConverter.cs   # Options → EmitterOptions 変換
+│   ├── IFileWriter.cs                # ファイル出力インターフェース
+│   └── ILocalSchemaProviderFactory.cs # ローカルスキーマプロバイダーファクトリー
 │
-├── Interfaces/                   # 拡張ポイント
-│   ├── ISchemaConverter.cs      # スキーマ変換インターフェース
-│   └── IFileWriter.cs           # ファイル出力インターフェース
+├── Services/                          # コア処理
+│   ├── KModelApplication.cs          # アプリケーション本体
+│   ├── RunnerBase.cs                 # Runner 基底クラス
+│   ├── GenerateRunner.cs             # コード生成実行
+│   ├── RawRunner.cs                  # Raw メタデータ出力実行
+│   ├── DiffRunner.cs                 # Diff 実行
+│   ├── EmitterOptionsConverter.cs    # GenerateOptions → EmitterOptions 変換
+│   ├── FileWriter.cs                 # ファイル出力
+│   └── LocalSchemaProviderFactory.cs # ローカルスキーマプロバイダーファクトリー実装
 │
-├── Enums/                        # 列挙型定義
-│   └── DiffOutputFormats.cs     # Diff 出力形式
+├── Extensions/                        # 拡張メソッド
+│   └── KintoneMetadataDiffExtensions.cs # Diff 結果のテキスト/Markdown 変換
 │
-├── Extensions/                   # 拡張メソッド
-│   └── KintoneMetadataDiffExtensions.cs
+├── Enums/                             # 列挙型定義
+│   └── DiffOutputFormats.cs          # Diff 出力形式（Text / Json / Markdown）
 │
-├── Program.cs                    # エントリーポイント
-├── kmodel.csproj               # プロジェクトファイル
-├── kmodel.config.json          # 設定ファイル（実運用用）
-├── kmodel.config.json.sample   # 設定ファイルサンプル
-└── kmodel.config.schema.json   # JSON Schema
+├── Logging/                           # ログ定義
+│   └── StaticLogMessages.cs          # 構造化ログメッセージ定義
+│
+├── Properties/
+│   └── AssemblyInfo.cs               # アセンブリ属性（InternalsVisibleTo 等）
+│
+├── Program.cs                         # エントリーポイント
+├── kmodel.csproj
+├── kmodel.config.json                 # 設定ファイル（実運用用）
+├── kmodel.config.json.sample          # 設定ファイルサンプル
+└── kmodel.config.schema.json          # JSON Schema
+
+kmodel.Tests/                          # ユニットテスト（xUnit）
+├── Config/
+│   ├── ConfigLoaderTests.cs          # ConfigLoader.Load のデシリアライズ
+│   └── ConfigToOptionsTests.cs       # *Config.ToOptions() マッピング
+├── Extensions/
+│   └── KintoneMetadataDiffExtensionsTests.cs # ToText / ToMarkdown
+└── Services/
+    ├── EmitterOptionsConverterTests.cs # ConvertToEmitterOptions 変換ロジック
+    ├── FileWriterTests.cs             # 上書き制御・ファイル名検証
+    └── GenerateRunnerCsvTests.cs      # CSV/TSV パーサー（ParseDelimitedLine / Escape）
 ```
 
 ---
@@ -533,50 +610,35 @@ kmodel/
 
 kmodel は、`KintoneNetLibrary.CodeGen` の **Emitter** パターンを活用して複数言語に対応しています。新言語を追加する場合、以下の手順に従います。
 
-#### 1. Emitter クラスの実装
+#### 1. KintoneNetLibrary.CodeGen に Emitter クラスを実装
 
-`KintoneNetLibrary.CodeGen` プロジェクトに、言語ごとの `ICodeEmitter` 実装を作成：
+`ICodeEmitter` インターフェースを実装した言語別 Emitter を作成します。
 
 ```csharp
-using KintoneNetLibrary.CodeGen.Domain.Models;
+using KintoneNetLibrary.CodeGen.Application.Interfaces;
+using KintoneNetLibrary.CodeGen.Domain.Options;
+using KintoneNetLibrary.CodeGen.Domain.Schemas;
 
 namespace KintoneNetLibrary.CodeGen.Emitters;
 
-public class RustCodeEmitter : ICodeEmitter
-{
-    private readonly CodeGenContext _context;
-
-    public RustCodeEmitter(CodeGenContext context)
-    {
-        _context = context;
-    }
-
-    public async Task<Dictionary<string, string>> EmitAsync()
-    {
-        var files = new Dictionary<string, string>();
-
+public class RustCodeEmitter : ICodeEmitter {
+    public CodeEmitResult Emit(
+        KintoneAppSchema schema,
+        CodeEmitterOptions options,
+        INameConverter nameConverter) {
         // Rust コード生成ロジック
-        var rustCode = GenerateRustCode();
-        files["model.rs"] = rustCode;
-
-        return files;
-    }
-
-    private string GenerateRustCode()
-    {
-        // 実装
-        return "";
+        var code = GenerateRustCode(schema, options, nameConverter);
+        return new CodeEmitResult { MainModelCode = code };
     }
 }
 ```
 
 #### 2. 言語列挙型に追加
 
-Enums/GenerateLanguages.cs:
+`KintoneNetLibrary.CodeGen.Domain.Enums.GenerateLanguages`:
 
 ```csharp
-public enum GenerateLanguages
-{
+public enum GenerateLanguages {
     CSharp,
     Python,
     TypeScript,
@@ -586,36 +648,16 @@ public enum GenerateLanguages
 }
 ```
 
-#### 3. ファクトリーで登録
+#### 3. kmodel 側の EmitterOptionsConverter に分岐を追加
 
-`CodeGenRunner` の `GetEmitter` メソッドを更新：
-
-```csharp
-private ICodeEmitter GetEmitter(GenerateLanguages language, CodeGenContext context)
-{
-    return language switch
-    {
-        GenerateLanguages.CSharp => new CSharpCodeEmitter(context),
-        GenerateLanguages.Python => new PythonCodeEmitter(context),
-        GenerateLanguages.Rust => new RustCodeEmitter(context), // 追加
-        _ => throw new NotSupportedException($"Language {language} is not supported")
-    };
-}
-```
-
-#### 4. テストを追加
+`Services/EmitterOptionsConverter.cs` の `ConvertToEmitterOptions` メソッドに新言語の `case` を追加します。
 
 ```csharp
-[Fact]
-public async Task EmitAsync_GeneratesValidRustCode()
-{
-    var context = new CodeGenContext { /* ... */ };
-    var emitter = new RustCodeEmitter(context);
-    var result = await emitter.EmitAsync();
-
-    Assert.NotEmpty(result);
-    Assert.Contains("model.rs", result.Keys);
-}
+GenerateLanguages.Rust => new RustEmitterOptions {
+    // 共通プロパティのマッピング
+    MainClassName = options.ClassName ?? ...,
+    ...
+},
 ```
 
 ---
@@ -647,8 +689,9 @@ kmodel への貢献を歓迎します！
 
 - **言語**: C# 10.0 以上
 - **フレームワーク**: .NET 10.0
-- **スタイル**: Microsoft の [C# コーディング規約](https://docs.microsoft.com/en-us/dotnet/csharp/fundamentals/coding-style/coding-conventions)に準拠
-- **テスト**: xUnit で単体テストを記述
+- **コメント**: 日本語
+- **スタイル**: `this.` を使用、`{}` を省略しない
+- **テスト**: xUnit でユニットテストを記述（`dotnet test` で実行）
 - **ドキュメント**: XML コメント（`///`）を使用
 
 ### 開発環境のセットアップ
@@ -659,7 +702,7 @@ git clone https://github.com/your-organization/kmodel.git
 cd kmodel
 
 # ビルド
-dotnet build
+dotnet build kmodel.sln
 
 # テスト実行
 dotnet test
@@ -680,7 +723,3 @@ kmodel は [MIT License](LICENSE) の下で公開されています。
 ## Support
 
 問題が発生した場合は、[GitHub Issues](https://github.com/your-organization/kmodel/issues) で報告してください。
-
----
-
-**Made with ❤️ by the Kintone Community**

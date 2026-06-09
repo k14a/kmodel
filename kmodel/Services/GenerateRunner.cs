@@ -170,7 +170,7 @@ public class GenerateRunner(
     /// <param name="value">エスケープする値</param>
     /// <param name="delimiter">区切り文字</param>
     /// <returns>エスケープされた値</returns>
-    private static string Escape(string? value, char delimiter) {
+    internal static string Escape(string? value, char delimiter) {
         if (string.IsNullOrEmpty(value)) {
             return string.Empty;
         }
@@ -271,7 +271,7 @@ public class GenerateRunner(
     /// <param name="line">解析する行の文字列</param>
     /// <param name="delimiter">区切り文字</param>
     /// <returns>解析された列の配列</returns>
-    private static string[] ParseDelimitedLine(string line, char delimiter) {
+    internal static string[] ParseDelimitedLine(string line, char delimiter) {
         var result = new List<string>();
         var sb = new StringBuilder();
         bool inQuotes = false;

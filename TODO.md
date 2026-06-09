@@ -25,6 +25,19 @@
 | 17 | [CA-1] | `IFileWriter` が外部ライブラリのドメインモデルに依存 | Clean Architecture | 大 |
 | 18 | [UP-1] | `ICodeEmitterFactory.Create` シグネチャ変更への追従 | ライブラリ更新 | 小 |
 
+### テストケース
+
+テスト対象の優先度順。Runner 系・CommandBuilder 系は外部依存が多くコスト対効果が低いため対象外とする。
+
+| 優先度 | ID | タイトル | 備考 | 工数感 |
+|:---:|:---|:---|:---|:---:|
+| 19 | [TEST-1] | `EmitterOptionsConverter` の変換ロジック | 外部依存なし・NullLogger で完結 | 小 |
+| 20 | [TEST-2] | `GenerateRunner` の CSV/TSV パーサー（`ParseDelimitedLine` / `Escape`） | `private` → `internal` 化が必要 | 小 |
+| 21 | [TEST-3] | `KintoneMetadataDiffExtensions.ToText` / `ToMarkdown` | 純粋関数・外部依存なし | 小 |
+| 22 | [TEST-4] | `FileWriter` の上書き制御・ファイル名検証 | 一時ディレクトリを使用 | 中 |
+| 23 | [TEST-5] | `ConfigLoader.Load` のデシリアライズ | 一時ファイルを使用 | 中 |
+| 24 | [TEST-6] | `*Config.ToOptions()` のプロパティマッピング | リグレッション保護 | 小 |
+
 ---
 
 ## Clean Architecture 依存方向
@@ -168,3 +181,68 @@ KintoneNetLibrary を 0.9.0 → 0.9.1 へバージョンアップしたことに
   var result = codeEmitter.Emit(schema, emitterOptions, nameConverter);
   ```
 - **対応**: 上記2行を修正するだけで現行の2ビルドエラーが解消される。
+
+---
+
+## テストケース
+
+Runner 系（`GenerateRunner` / `RawRunner` / `DiffRunner`）と CommandBuilder 系は外部依存が多くコスト対効果が低いため対象外とする。
+
+### [TEST-1] `EmitterOptionsConverter` の変換ロジック
+- [x] 対応済み
+- **場所**: [Services/EmitterOptionsConverter.cs](kmodel/Services/EmitterOptionsConverter.cs)
+- **理由**: C#/Python 双方で多数のプロパティマッピングがある。DES-2 でネスト構造に変更したため、手動確認が難しいリグレッションが入り込みやすい。
+- **テスト内容**:
+  - C# 向け変換: `CSharp.*` プロパティが `CSharpEmitterOptions` へ正しくマッピングされること
+  - Python 向け変換: `Python.*` プロパティが `PythonEmitterOptions` へ正しくマッピングされること
+  - 未サポート言語指定時に `NotSupportedException` がスローされること
+
+### [TEST-2] `GenerateRunner` の CSV/TSV パーサー
+- [x] 対応済み
+- **場所**: [Services/GenerateRunner.cs](kmodel/Services/GenerateRunner.cs) — `ParseDelimitedLine` / `Escape`
+- **理由**: クォート・エスケープ処理は複雑で、エッジケースでバグが入りやすい。現状 `private` のため `internal` 化 + `[InternalsVisibleTo]` が前提となる。
+- **テスト内容**:
+  - 通常フィールド（クォートなし）
+  - ダブルクォートで囲まれたフィールド
+  - ダブルクォートのエスケープ（`""`）
+  - 区切り文字を含むフィールド
+  - 空フィールド
+  - `Escape`: 区切り文字・改行・クォートを含む値のエスケープ
+
+### [TEST-3] `KintoneMetadataDiffExtensions.ToText` / `ToMarkdown`
+- [x] 対応済み
+- **場所**: [Extensions/KintoneMetadataDiffExtensions.cs](kmodel/Extensions/KintoneMetadataDiffExtensions.cs)
+- **理由**: テキスト出力フォーマットは純粋関数で外部依存なし。Added/Removed/Changed の各 DiffType で出力形式が異なるため、リグレッション保護として有効。
+- **テスト内容**:
+  - Added / Removed / Changed / ChangedOptions 各 DiffType での出力形式
+  - SubTableDiffs が存在する場合のインデント
+  - Before / After が null の場合の出力
+
+### [TEST-4] `FileWriter` の上書き制御・ファイル名検証
+- [x] 対応済み
+- **場所**: [Services/FileWriter.cs](kmodel/Services/FileWriter.cs)
+- **理由**: `OverwriteExistingFiles = false` 時の保護と不正ファイル名のガードは動作保証が必要。一時ディレクトリを使えば自動化可能。
+- **テスト内容**:
+  - 上書き禁止時: 既存ファイルをスキップすること
+  - 上書き許可時: 既存ファイルを上書きすること
+  - 不正ファイル名（`Path.GetInvalidFileNameChars()` を含む）の拒否
+  - `WriteDiffResults` の `{appId}` プレースホルダー置換
+
+### [TEST-5] `ConfigLoader.Load` のデシリアライズ
+- [x] 対応済み
+- **場所**: [Config/ConfigLoader.cs](kmodel/Config/ConfigLoader.cs)
+- **理由**: camelCase + `JsonStringEnumConverter` の組み合わせ。設定ファイルのデシリアライズは実際に動かすまで分からない挙動がある。一時ファイルを使えば自動化可能。
+- **テスト内容**:
+  - 正常な JSON のデシリアライズ（camelCase キー・enum 文字列）
+  - コメント付き JSON のスキップ（`ReadCommentHandling.Skip`）
+  - ファイル未存在時の `FileNotFoundException`
+  - デシリアライズ失敗時の `InvalidOperationException`
+
+### [TEST-6] `*Config.ToOptions()` のプロパティマッピング
+- [x] 対応済み
+- **場所**: [Config/GenerateConfig.cs](kmodel/Config/GenerateConfig.cs)、[Config/RawConfig.cs](kmodel/Config/RawConfig.cs)、[Config/DiffConfig.cs](kmodel/Config/DiffConfig.cs)
+- **理由**: CA-3 対応で導入した Config → Options の変換処理。プロパティを全量マッピングしており、将来プロパティが増えた際の漏れを検出するリグレッション保護として有効。
+- **テスト内容**:
+  - `GenerateConfig.ToOptions()`: 全プロパティが `GenerateOptions` に正しく反映されること
+  - `RawConfig.ToOptions()`: 全プロパティが `RawOptions` に正しく反映されること
+  - `DiffConfig.ToOptions()`: 全プロパティが `DiffOptions` に正しく反映されること
