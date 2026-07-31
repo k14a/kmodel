@@ -143,17 +143,13 @@ kmodel は以下のライブラリに依存しています：
 kmodel init --lang CSharp
 ```
 
-このコマンドは、カレントディレクトリに `kmodel.config.json.sample` と `kmodel.config.schema.json` を作成します。
-
-```bash
-cp kmodel.config.json.sample kmodel.config.json
-```
+このコマンドは、カレントディレクトリに `kmodel.config.json` を作成します。
 
 ### 2. 設定ファイルを編集
 
 エディタで `kmodel.config.json` を開き、以下を設定：
 
-- `subDomain`: あなたの Kintone サブドメイン（例：`mycompany`）
+- `subDomain`: Kintone の完全なドメイン（例：`mycompany.cybozu.com`。サブドメイン名のみではなく、`.cybozu.com` 等を含むホスト名全体を指定してください）
 - `generates[*].appId`: 対象アプリID
 - `generates[*].apiToken`: API トークン（参照権限が必要）
 - `generates[*].csharp.namespace`（C#）: モデルクラスの名前空間
@@ -162,13 +158,13 @@ cp kmodel.config.json.sample kmodel.config.json
 ### 3. コード生成
 
 ```bash
-kmodel generate --subdomain mycompany --app 123 --token YOUR_TOKEN --lang CSharp --out ./Models
+kmodel generate --sub-domain mycompany.cybozu.com --app-id 123 --api-token YOUR_TOKEN --lang CSharp --out-dir ./Models
 ```
 
-または、設定ファイルを使用：
+または、設定ファイルを使用（`kmodel` を引数なしで実行すると、実行ファイルと同じディレクトリの `kmodel.config.json` を読み込みます）：
 
 ```bash
-kmodel generate --config kmodel.config.json
+kmodel
 ```
 
 ### 4. 出力の確認
@@ -188,8 +184,8 @@ kmodel generate --config kmodel.config.json
   // JSON Schema による補完を有効化
   "$schema": "./kmodel.config.schema.json",
 
-  // 必須: Kintone サブドメイン
-  "subDomain": "mycompany",
+  // 必須: Kintone の完全なドメイン（サブドメイン名のみではなく .cybozu.com 等を含むホスト名全体）
+  "subDomain": "mycompany.cybozu.com",
 
   // 生成設定の配列
   "generates": [
@@ -318,31 +314,34 @@ kmodel generate --config kmodel.config.json
 Kintone のメタデータからモデルコードを生成します。
 
 ```bash
-kmodel generate --subdomain <SUBDOMAIN> --app <APP_ID> --token <TOKEN> [OPTIONS]
+kmodel generate --sub-domain <SUBDOMAIN> --app-id <APP_ID> --api-token <TOKEN> [OPTIONS]
 ```
 
 #### オプション
 
 | オプション | 型 | 必須 | 説明 |
 |---|---|---|---|
-| `--subdomain` | string | ○ | Kintone サブドメイン |
-| `--app` | int | ○ | Kintone アプリID |
-| `--token` | string | ○ | API トークン |
+| `--sub-domain` | string | ○（`--fields` 未指定時） | Kintone の完全なドメイン（例：`mycompany.cybozu.com`） |
+| `--app-id` | int | ○ | Kintone アプリID |
+| `--api-token` | string | ○（`--fields` 未指定時） | API トークン |
 | `--lang` | string | × | 生成言語（デフォルト: CSharp） |
-| `--out` | string | × | 出力ディレクトリ（デフォルト: .） |
-| `--config` | string | × | 設定ファイルパス |
+| `--out-dir` | string | × | 出力ディレクトリ |
+| `--fields` | string | × | kbackup 由来の `fields.json` のパス（指定時は同じディレクトリの `layout.json` も読み込み、Kintone への接続なしで生成） |
+| `--name-table` | string | × | プロパティ名変換テーブル（JSON）のパス |
+| `--class-name` | string | × | 生成クラス名を固定したい場合に指定 |
+| `--export-name-table-template` | string | × | 名前テーブルのテンプレートを出力して終了（モデルコードは生成しない） |
 
 #### 使用例
 
 ```bash
 # C# コードを生成
-kmodel generate --subdomain mycompany --app 123 --token abc123 --lang CSharp --out ./Models
+kmodel generate --sub-domain mycompany.cybozu.com --app-id 123 --api-token abc123 --lang CSharp --out-dir ./Models
 
 # Python コードを生成
-kmodel generate --subdomain mycompany --app 123 --token abc123 --lang Python --out ./models
+kmodel generate --sub-domain mycompany.cybozu.com --app-id 123 --api-token abc123 --lang Python --out-dir ./models
 
 # TypeScript コードを生成
-kmodel generate --subdomain mycompany --app 123 --token abc123 --lang TypeScript --out ./models
+kmodel generate --sub-domain mycompany.cybozu.com --app-id 123 --api-token abc123 --lang TypeScript --out-dir ./models
 ```
 
 ### raw
@@ -350,25 +349,25 @@ kmodel generate --subdomain mycompany --app 123 --token abc123 --lang TypeScript
 Kintone API から取得した生のメタデータを JSON ファイルにエクスポートします。
 
 ```bash
-kmodel raw --subdomain <SUBDOMAIN> --app <APP_ID> --token <TOKEN> [OPTIONS]
+kmodel raw --sub-domain <SUBDOMAIN> --app-id <APP_ID> --api-token <TOKEN> [OPTIONS]
 ```
 
 #### オプション
 
 | オプション | 型 | 必須 | 説明 |
 |---|---|---|---|
-| `--subdomain` | string | ○ | Kintone サブドメイン |
-| `--app` | int | ○ | Kintone アプリID |
-| `--token` | string | ○ | API トークン |
-| `--out` | string | × | 出力ディレクトリ（デフォルト: .） |
+| `--sub-domain` | string | ○（`--fields` 未指定時） | Kintone の完全なドメイン（例：`mycompany.cybozu.com`） |
+| `--app-id` | int | ○ | Kintone アプリID |
+| `--api-token` | string | ○（`--fields` 未指定時） | API トークン |
+| `--out-dir` | string | × | 出力ディレクトリ |
+| `--escape` | flag | × | 出力内のフィールドコードをエスケープする |
+| `--pretty` | flag | × | 出力 JSON を整形する |
 
 #### 使用例
 
 ```bash
 # メタデータを JSON で保存
-kmodel raw --subdomain mycompany --app 123 --token abc123 --out ./metadata
-
-# 出力: ./metadata/123_metadata.json
+kmodel raw --sub-domain mycompany.cybozu.com --app-id 123 --api-token abc123 --out-dir ./metadata
 ```
 
 ### diff
@@ -376,27 +375,30 @@ kmodel raw --subdomain mycompany --app 123 --token abc123 --out ./metadata
 2つの時点のメタデータを比較し、変更内容を表示します。
 
 ```bash
-kmodel diff --subdomain <SUBDOMAIN> --app <APP_ID> --token <TOKEN> [OPTIONS]
+kmodel diff --sub-domain <SUBDOMAIN> --app-id <APP_ID> --api-token <TOKEN> [OPTIONS]
 ```
 
 #### オプション
 
 | オプション | 型 | 必須 | 説明 |
 |---|---|---|---|
-| `--subdomain` | string | ○ | Kintone サブドメイン |
-| `--app` | int | ○ | Kintone アプリID |
-| `--token` | string | ○ | API トークン |
-| `--out` | string | × | 出力ディレクトリ（デフォルト: .） |
-| `--format` | string | × | 出力形式（Text / Json / Markdown） |
+| `--sub-domain` | string | ○（`--fields` 未指定時） | Kintone の完全なドメイン（例：`mycompany.cybozu.com`） |
+| `--app-id` | int | ○ | Kintone アプリID |
+| `--api-token` | string | ○（`--fields` 未指定時） | API トークン |
+| `--out-dir` | string | × | 出力ディレクトリ |
+| `--format` | string | × | 出力形式（Text / Json / Markdown、デフォルト: Text） |
+| `--compare-with` | string | × | 比較対象の過去メタデータ JSON ファイルパス |
+| `--escape` | flag | × | 出力内のフィールドコードをエスケープする |
+| `--pretty` | flag | × | 出力 JSON を整形する |
 
 #### 使用例
 
 ```bash
 # 差分をテキスト形式で出力（デフォルト）
-kmodel diff --subdomain mycompany --app 123 --token abc123
+kmodel diff --sub-domain mycompany.cybozu.com --app-id 123 --api-token abc123 --out-dir ./raw
 
 # Markdown 形式で出力
-kmodel diff --subdomain mycompany --app 123 --token abc123 --format Markdown --out ./diffs
+kmodel diff --sub-domain mycompany.cybozu.com --app-id 123 --api-token abc123 --format Markdown --out-dir ./diffs
 ```
 
 ### init
@@ -423,8 +425,7 @@ kmodel init --lang CSharp
 kmodel init --lang Python
 
 # 出力:
-#   - kmodel.config.json.sample
-#   - kmodel.config.schema.json
+#   - kmodel.config.json
 ```
 
 ---
@@ -434,15 +435,12 @@ kmodel init --lang Python
 ### 例1: 単一アプリの C# コード生成
 
 ```bash
-# 1. 初期化
+# 1. 初期化（kmodel.config.json が作成される）
 kmodel init --lang CSharp
-
-# 2. 設定ファイルを作成・編集
-cp kmodel.config.json.sample kmodel.config.json
 # kmodel.config.json を編集
 
-# 3. 生成実行
-kmodel generate --subdomain mycompany --app 123 --token YOUR_TOKEN --lang CSharp --out ./Models
+# 2. 生成実行（CLI オプションを直接指定する場合）
+kmodel generate --sub-domain mycompany.cybozu.com --app-id 123 --api-token YOUR_TOKEN --lang CSharp --out-dir ./Models
 ```
 
 **生成されるファイル例（C#）**:
@@ -463,7 +461,7 @@ Models/
 ```json
 {
   "$schema": "./kmodel.config.schema.json",
-  "subDomain": "mycompany",
+  "subDomain": "mycompany.cybozu.com",
   "generates": [
     {
       "appId": 111,
@@ -487,17 +485,17 @@ Models/
 }
 ```
 
-実行:
+実行（`kmodel.config.json` と同じディレクトリで、引数なしで `kmodel` を実行）:
 
 ```bash
-kmodel generate --config kmodel.config.json
+kmodel
 ```
 
 ### 例3: Python コード生成
 
 ```bash
 kmodel init --lang Python
-kmodel generate --subdomain mycompany --app 123 --token YOUR_TOKEN --lang Python --out ./models
+kmodel generate --sub-domain mycompany.cybozu.com --app-id 123 --api-token YOUR_TOKEN --lang Python --out-dir ./models
 ```
 
 **生成されるファイル例（Python）**:
@@ -513,16 +511,16 @@ models/
 
 ```bash
 # 現在のメタデータを保存
-kmodel raw --subdomain mycompany --app 123 --token YOUR_TOKEN --out ./metadata
+kmodel raw --sub-domain mycompany.cybozu.com --app-id 123 --api-token YOUR_TOKEN --out-dir ./metadata
 
 # 時間が経過後、差分を確認
-kmodel diff --subdomain mycompany --app 123 --token YOUR_TOKEN --out ./diffs --format Markdown
+kmodel diff --sub-domain mycompany.cybozu.com --app-id 123 --api-token YOUR_TOKEN --out-dir ./diffs --format Markdown
 ```
 
 ### 例5: TypeScript / JavaScript での使用
 
 ```bash
-kmodel generate --subdomain mycompany --app 123 --token YOUR_TOKEN --lang TypeScript --out ./models
+kmodel generate --sub-domain mycompany.cybozu.com --app-id 123 --api-token YOUR_TOKEN --lang TypeScript --out-dir ./models
 ```
 
 生成ファイルを React / Vue.js プロジェクトで型定義として使用できます。

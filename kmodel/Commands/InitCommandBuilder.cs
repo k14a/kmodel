@@ -1,5 +1,6 @@
 using System.CommandLine;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using Microsoft.Extensions.Hosting;
 using kmodel.Config;
 using kmodel.Options;
@@ -60,7 +61,11 @@ kmodel init --lang TypeScript
             // -------------------------
             var json = JsonSerializer.Serialize(
                 config,
-                new JsonSerializerOptions { WriteIndented = true }
+                new JsonSerializerOptions {
+                    WriteIndented = true,
+                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                    Converters = { new JsonStringEnumConverter() }
+                }
             );
 
             await File.WriteAllTextAsync(configPath, json);
