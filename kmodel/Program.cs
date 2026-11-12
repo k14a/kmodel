@@ -79,6 +79,8 @@ internal class Program {
                 // KintoneNetLibrary.CodeGen 関連サービス
                 services.AddTransient<ISchemaProvider, SchemaProvider>();
                 services.AddTransient<IKintoneFieldParser, KintoneFieldParser>();
+                services.AddTransient<IKintoneLayoutParser, KintoneLayoutParser>();
+                services.AddTransient<IMetadataLoader, MetadataLoader>();
                 services.AddTransient<ILocalSchemaProviderFactory, LocalSchemaProviderFactory>();
                 services.AddTransient<IXmlCommentBuilder, CSharpXmlCommentBuilder>();
                 services.AddTransient<ISubTableEmitter, CSharpSubTableEmitter>();
