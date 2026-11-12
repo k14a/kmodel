@@ -18,18 +18,18 @@ jobs:
       # kmodel と KintoneNetLibrary を隣り合わせに配置する
       # kmodel/kmodel.csproj の ProjectReference が ../../KintoneNetLibrary/... を参照しているため
       - name: Checkout kmodel
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           path: kmodel
 
       - name: Checkout KintoneNetLibrary
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: k14a/KintoneNetLibrary
           path: KintoneNetLibrary
 
       - name: Setup .NET 10
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v6
         with:
           dotnet-version: '10.0.x'
 
