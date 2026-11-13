@@ -700,7 +700,7 @@ git clone https://github.com/your-organization/kmodel.git
 cd kmodel
 
 # ビルド
-dotnet build kmodel.sln
+dotnet build kmodel.slnx
 
 # テスト実行
 dotnet test

@@ -11,7 +11,7 @@
 kintone のサブドメイン・アプリ名・アプリ ID・フィールドコード・API トークンを書かない。例には `example.cybozu.com` などの架空の値を使う。
 
 ## ビルド・テスト
-- dotnet build kmodel.sln
+- dotnet build kmodel.slnx
 - dotnet test
 
 ## コーディングルール
